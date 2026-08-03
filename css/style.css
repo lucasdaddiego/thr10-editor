@@ -629,3 +629,56 @@ dialog.console::backdrop { background: rgba(0, 0, 0, 0.55); }
   align-items: center;
 }
 .lib-save:hover { color: var(--amber); }
+
+/* ------------------------------------------------------- offline state */
+
+body.offline .amp-controls,
+body.offline .block-rows {
+  opacity: 0.4;
+  filter: grayscale(0.6);
+}
+
+body.offline .main-col { position: relative; }
+body.offline .main-col::after {
+  content: 'NO AMP CONNECTED \2014  plug in the THR10 over USB and press Connect';
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(13, 13, 13, 0.92);
+  color: var(--amber);
+  border: 1px solid #4a4a4f;
+  border-radius: 6px;
+  padding: 0.7rem 1.3rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Expanding ring on a pseudo-element, transform/opacity only: the pulse runs
+   on the compositor instead of repainting every frame for however long the
+   app sits disconnected. */
+body.offline .conn-btn .dot { position: relative; }
+body.offline .conn-btn .dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(176, 67, 63, 0.7);
+  z-index: -1; /* behind the dot itself, over the button face */
+  animation: conn-pulse 1.6s infinite;
+}
+@keyframes conn-pulse {
+  from { transform: scale(1); opacity: 1; }
+  70%, to { transform: scale(2.2); opacity: 0; }
+}
+
+.face-top button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

@@ -13,7 +13,7 @@
   <link rel="modulepreload" href="js/panel.js">
   <link rel="modulepreload" href="js/library.js">
 </head>
-<body>
+<body class="offline">
   <main class="chassis">
     <aside class="library">
       <h2 class="lib-title">Library</h2>
@@ -29,7 +29,7 @@
       <div class="face-top">
         <div class="brand">THR10 <span>Editor</span> <span id="dirty-dot" title="Edited since the last sync with the amp" hidden>●</span></div>
         <div class="btn-group">
-          <button id="btn-dump" title="Ask the amp for its current settings">Read Amp</button>
+          <button id="btn-dump" title="Ask the amp for its current settings" disabled>Read Amp</button>
           <button id="btn-console" title="Open the SysEx console — traffic is logged only while it is open">Console</button>
         </div>
         <label class="push-toggle" title="Amp panel LEDs on/off">
@@ -45,10 +45,10 @@
           <span id="conn-label">Connect</span>
         </button>
       </div>
-      <div id="amp-root"></div>
+      <div id="amp-root" inert></div>
     </section>
 
-    <div id="blocks-root" class="block-rows"></div>
+    <div id="blocks-root" class="block-rows" inert></div>
     </div>
   </main>
 

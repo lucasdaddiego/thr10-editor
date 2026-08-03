@@ -281,6 +281,12 @@ async function importYdlFile(file) {
 midi.addEventListener('connection', e => {
   const { connected, name } = e.detail;
   if (!connected) ampModelName = null; // a different amp may appear next
+  // Disconnected: dim the control surface and disable it entirely (inert
+  // blocks pointer and keyboard); the library stays usable offline.
+  document.body.classList.toggle('offline', !connected);
+  ampRoot.inert = !connected;
+  blocksRoot.inert = !connected;
+  btnDump.disabled = !connected;
   connDot.className = `dot ${connected ? 'online' : 'offline'}`;
   connLabel.textContent = connected ? (ampModelName ?? name) : 'Connect';
   logLine(connected ? `THR port found: ${name}` : 'THR port lost/not found');
