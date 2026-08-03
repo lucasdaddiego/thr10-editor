@@ -29,10 +29,18 @@
     <section class="amp-face">
       <div class="face-top">
         <div class="brand">THR10 <span>Editor</span> <span id="dirty-dot" title="Edited since the last sync with the amp" hidden>●</span></div>
-        <button id="btn-dump" title="Ask the amp for its current settings">Read Amp</button>
-        <label class="sys"><input id="chk-led" type="checkbox" checked> Amp LED</label>
-        <label class="sys"><input id="chk-wide" type="checkbox"> Wide</label>
-        <button id="btn-console" title="Open the SysEx console — traffic is logged only while it is open">Console</button>
+        <div class="btn-group">
+          <button id="btn-dump" title="Ask the amp for its current settings">Read Amp</button>
+          <button id="btn-console" title="Open the SysEx console — traffic is logged only while it is open">Console</button>
+        </div>
+        <label class="push-toggle" title="Amp panel LEDs on/off">
+          <input id="chk-led" type="checkbox" checked>
+          <span class="push"></span>Amp LED
+        </label>
+        <label class="push-toggle" title="Wide stereo on/off">
+          <input id="chk-wide" type="checkbox">
+          <span class="push"></span>Wide
+        </label>
         <button id="btn-connect" class="conn-btn" title="Connection status — click to (re)connect">
           <span id="conn-dot" class="dot offline"></span>
           <span id="conn-label">Connect</span>
