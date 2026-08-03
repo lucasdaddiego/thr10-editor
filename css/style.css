@@ -1,0 +1,592 @@
+/* Styled after Yamaha's official THR editor: dark leather chassis, cream amp
+   face, black value windows with amber digits, rotary knobs. */
+
+:root {
+  --chassis: #232327;
+  --cream-hi: #f0e2bd;
+  --cream-lo: #ddc998;
+  --cream-text: #4a3f2a;
+  --cream-strong: #2f2818;
+  --row-hi: #3b3b40;
+  --row-lo: #2a2a2e;
+  --box: #0d0d0d;
+  --amber: #f5a83c;
+  --led: #ffb340;
+  --text: #e6e6e6;
+  --muted: #9a9a9a;
+  --ok: #57c75b;
+  --bad: #b0433f;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* the leather chassis IS the page — no frame around it */
+  background:
+    radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px) 0 0 / 4px 4px,
+    var(--chassis);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+button { font: inherit; cursor: pointer; }
+
+/* ------------------------------------------------------------- chassis */
+
+.chassis {
+  max-width: 1560px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 14rem minmax(0, 1fr);
+  gap: 6px;
+  align-items: stretch;
+}
+.main-col { min-width: 0; }
+
+/* ------------------------------------------------------------- library */
+
+.library {
+  display: flex;
+  flex-direction: column;
+  /* height comes from the grid row (i.e. the main column), not the 100 slots */
+  contain: size;
+  overflow: hidden;
+  background: #1b1b1e;
+  border: 1px solid #313136;
+  border-radius: 8px 3px 3px 8px;
+  padding: 0.6rem;
+}
+
+.lib-title {
+  margin: 0 0 0.4rem 0.2rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+#lib-list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 2px;
+  list-style: none;
+  overflow-y: auto;
+  background: var(--box);
+  border-radius: 4px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.lib-slot {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.22rem 0.5rem;
+  background: none;
+  border: none;
+  border-radius: 2px;
+  color: #cfcfcf;
+  font-size: 0.75rem;
+  text-align: left;
+}
+.lib-slot:hover { background: #222226; }
+.lib-slot .lib-num {
+  font-family: ui-monospace, Menlo, monospace;
+  color: #6f6f76;
+}
+.lib-slot.empty .lib-name { color: #5b5b62; font-style: italic; }
+.lib-slot.selected { background: #2c2c31; color: var(--amber); }
+.lib-slot.selected .lib-num { color: var(--amber); }
+
+.lib-actions { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+.library button,
+.library .file-btn {
+  flex: 1;
+  background: #2b2b30;
+  border: 1px solid #3e3e44;
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 0.3rem 0.55rem;
+  box-shadow: none;
+}
+.library button:hover,
+.library .file-btn:hover { filter: brightness(1.2); }
+
+/* ------------------------------------------------------------ amp face */
+
+.amp-face {
+  background: linear-gradient(var(--cream-hi), var(--cream-lo));
+  border-radius: 8px 8px 0 0;
+  padding: 0.55rem 1rem 0.7rem;
+  color: var(--cream-text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.brand {
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  color: var(--cream-strong);
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.55rem;
+  border-bottom: 1px solid rgba(47, 40, 24, 0.25);
+}
+.brand span { font-weight: 400; color: #6b5c3e; }
+
+.amp-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+.amp-left { flex: 0 0 auto; }
+
+.amp-cab,
+.amp-knobs {
+  border-left: 1px solid rgba(47, 40, 24, 0.25);
+  padding-left: 1.1rem;
+}
+
+/* Shared fixed-pitch layout: equal-width cells from a common left origin, so
+   knob columns align across rows — and unlike a no-wrap grid, a block with
+   many controls (Rack compressor) wraps instead of overflowing its row. */
+.amp-knobs,
+.block-knobs {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.6rem;
+}
+
+.amp-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cream-strong);
+}
+
+.model-list {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(4, auto);
+  gap: 0.12rem 0.7rem;
+}
+.model-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.1rem 0.35rem;
+  background: none;
+  border: none;
+  border-radius: 3px;
+  color: var(--cream-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.model-item .mled {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #8a7a55;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+.model-item.on { background: var(--box); color: var(--amber); }
+.model-item.on .mled {
+  background: var(--led);
+  box-shadow: 0 0 6px 1px rgba(255, 179, 64, 0.8);
+}
+
+/* ---------------------------------------------------------------- knobs */
+
+.knob-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 5.2rem;
+}
+
+.knob-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #cfcfcf;
+  white-space: nowrap;
+}
+.amp-face .knob-label { color: var(--cream-text); }
+
+.knob-value {
+  background: var(--box);
+  border: 1px solid #000;
+  border-radius: 2px;
+  color: var(--amber);
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.72rem;
+  align-self: stretch; /* equal-width windows across a row */
+  padding: 0.12rem 0.3rem;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.9);
+}
+
+input.value-edit {
+  min-width: 0;
+  outline: none;
+}
+input.value-edit:focus { border-color: var(--amber); }
+
+.knob {
+  --angle: 0deg;
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #6a6a6e, #3a3a3d 45%, #212124 75%, #0f0f10);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.25);
+  cursor: ns-resize;
+  touch-action: none;
+}
+.knob::after {
+  content: '';
+  position: absolute;
+  left: calc(50% - 1.5px);
+  top: 9%;
+  width: 3px;
+  height: 41%;
+  background: #e8e8e8;
+  border-radius: 2px;
+  transform-origin: 50% 100%;
+  transform: rotate(var(--angle));
+}
+.knob:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------- effect rows */
+
+/* Row bands sized so every block keeps its controls on ONE line:
+   Compressor (6 controls in Rack mode) gets the full width, Effect+Delay
+   split evenly, and Reverb (7 knobs) takes 3/4 next to the narrow Gate.
+   Placement by span, so the schema/DOM order stays protocol-ordered. */
+.block-rows {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 5px;
+  margin-top: 5px;
+}
+.block-row[data-block="compressor"] { grid-row: 1; grid-column: 1 / -1; }
+.block-row[data-block="modulation"] { grid-row: 2; grid-column: 1 / 8; }
+.block-row[data-block="delay"]      { grid-row: 2; grid-column: 8 / -1; }
+.block-row[data-block="reverb"]     { grid-row: 3; grid-column: 1 / 10; }
+.block-row[data-block="gate"]       { grid-row: 3; grid-column: 10 / -1; }
+
+.block-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "title title"
+    "side  knobs";
+  align-items: center;
+  gap: 0.2rem 1rem;
+  padding: 0.4rem 1rem 0.5rem;
+  background: linear-gradient(var(--row-hi), var(--row-lo));
+  border-radius: 3px;
+  border-top: 1px solid #4a4a4f;
+  border-bottom: 1px solid #151517;
+}
+
+.block-title {
+  grid-area: title;
+  justify-self: start;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8f8f94;
+}
+
+.block-side {
+  grid-area: side;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.block-side.typed { width: 14rem; } /* uniform knob origin for typed blocks */
+/* type lists sit beside the push button — two balanced columns */
+.block-side .model-list { grid-template-rows: repeat(2, auto); }
+
+/* Unified on/off: the push button carries its own LED lens in the centre. */
+.push {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #555, #222 70%);
+  border: 2px solid #111;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  flex: 0 0 auto;
+}
+.push::after {
+  content: '';
+  position: absolute;
+  inset: 31%;
+  border-radius: 50%;
+  background: #4c4234;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.7);
+}
+.push.on::after {
+  background: var(--led);
+  box-shadow: 0 0 8px 2px rgba(255, 179, 64, 0.75);
+}
+.push:active { transform: translateY(1px); }
+
+/* LED lists double as type selectors on the dark rows */
+.block-row .model-item { color: #c9c9c9; }
+.block-row .model-item .mled { background: #55503f; }
+.block-row .model-item.on { color: var(--amber); }
+
+/* Enum params (Ratio, Knee) render as LED lists like every other selector.
+   Stretched to the row height: label on the knob-label line, list bottom on
+   the knob line. */
+.enum-list-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.3rem;
+  align-self: stretch;
+  margin-left: 0.5rem;
+  border-left: 1px solid #4a4a4f;
+  padding-left: 1rem;
+}
+.enum-list-cell .model-list { grid-template-rows: repeat(3, auto); }
+
+.block-knobs { grid-area: knobs; }
+.block-row.off .block-knobs { opacity: 0.55; }
+
+/* ----------------------------------------------------------- bottom bar */
+
+.bottom-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  background: linear-gradient(var(--cream-hi), var(--cream-lo));
+  border-radius: 3px 3px 8px 8px; /* chassis' bottom edge */
+  padding: 0.45rem 1rem;
+  margin-top: 5px;
+}
+
+.patch-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.patch-slot label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cream-text);
+  white-space: nowrap;
+}
+#dirty-dot {
+  color: #b0641f;
+  text-shadow: 0 0 5px rgba(255, 179, 64, 0.6);
+}
+#patch-name {
+  background: var(--box);
+  border: 1px solid #000;
+  border-radius: 3px;
+  color: var(--amber);
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 0.8rem;
+  padding: 0.28rem 0.5rem;
+  width: min(15rem, 40vw);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.bottom-bar button,
+.file-btn {
+  background: #26262a;
+  border: none;
+  border-radius: 4px;
+  color: var(--cream-hi);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+.bottom-bar button:hover,
+.file-btn:hover { filter: brightness(1.25); }
+/* keep the hidden file input focusable so Import works from the keyboard */
+.file-btn { position: relative; }
+.file-btn input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.file-btn:focus-within {
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+}
+
+.sys {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--cream-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.conn {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#conn-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cream-text);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot.online { background: var(--ok); box-shadow: 0 0 6px 1px rgba(87, 199, 91, 0.7); }
+.dot.offline { background: var(--bad); }
+
+/* -------------------------------------------------------------- console */
+
+/* Modal dialog, opened from the Console button; logging only runs while open */
+dialog.console {
+  width: min(820px, 92vw);
+  background: linear-gradient(var(--row-hi), var(--row-lo));
+  color: var(--text);
+  border: 1px solid #4a4a4f;
+  border-radius: 8px;
+  padding: 0.7rem 1rem 1rem;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+}
+dialog.console::backdrop { background: rgba(0, 0, 0, 0.55); }
+
+.console-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.console-head h2 {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.console button {
+  background: #2b2b30;
+  border: 1px solid #3e3e44;
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 0.75rem;
+  padding: 0.25rem 0.7rem;
+}
+.console button:hover { filter: brightness(1.2); }
+
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  max-width: 90vw;
+  background: #111;
+  color: var(--cream-hi);
+  border: 1px solid #4a4a4f;
+  border-radius: 6px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.8rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+#log {
+  background: #101012;
+  border-radius: 4px;
+  height: 14rem;
+  overflow-y: auto;
+  padding: 0.5rem;
+  margin: 0.5rem 0 0;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+#send-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+#hex-input {
+  flex: 1;
+  background: #101012;
+  border: 1px solid #3a3a40;
+  border-radius: 4px;
+  color: var(--text);
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.8rem;
+  padding: 0.4rem 0.6rem;
+}
+
+/* ------------------------------------------------------------ small screens */
+
+@media (max-width: 980px) {
+  .chassis { display: block; }
+  .library { contain: none; margin-bottom: 6px; border-radius: 8px; }
+  #lib-list { max-height: 10rem; }
+  .block-rows { display: flex; flex-direction: column; }
+  .amp-controls { flex-wrap: wrap; }
+  /* stacked amp sections: vertical dividers would dangle */
+  .amp-cab,
+  .amp-knobs { border-left: none; padding-left: 0; }
+}
+
+@media (max-width: 640px) {
+  .block-row { display: flex; flex-direction: column; align-items: stretch; }
+  .block-side.typed { width: auto; }
+  .conn { margin-left: 0; width: 100%; justify-content: flex-end; }
+}

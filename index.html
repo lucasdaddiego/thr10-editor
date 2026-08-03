@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#232327">
+  <title>THR10 Editor</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="modulepreload" href="js/protocol.js">
+  <link rel="modulepreload" href="js/midi.js">
+  <link rel="modulepreload" href="js/panel.js">
+  <link rel="modulepreload" href="js/library.js">
+</head>
+<body>
+  <main class="chassis">
+    <aside class="library">
+      <h2 class="lib-title">Library</h2>
+      <ol id="lib-list"></ol>
+      <div class="lib-actions">
+        <button id="btn-lib-save" title="Save the current patch into the selected slot">Save</button>
+        <label class="file-btn">Import<input id="lib-import" type="file" accept=".YDL,.ydl"></label>
+        <button id="btn-lib-export" title="Download the library as a .YDL file">Export</button>
+      </div>
+    </aside>
+
+    <div class="main-col">
+    <section class="amp-face">
+      <div id="amp-root"></div>
+    </section>
+
+    <div id="blocks-root" class="block-rows"></div>
+
+    <footer class="bottom-bar">
+      <div class="patch-slot">
+        <label for="patch-name">Patch Name <span id="dirty-dot" title="Edited since the last sync with the amp" hidden>●</span></label>
+        <input id="patch-name" type="text" maxlength="48" spellcheck="false" autocomplete="off">
+      </div>
+      <button id="btn-dump" title="Ask the amp for its current settings">Read Amp</button>
+      <button id="btn-send-patch" title="Send the whole patch to the amp's edit buffer">Send Amp</button>
+      <label class="file-btn">Import .YDP<input id="file-import" type="file" accept=".YDP,.ydp"></label>
+      <button id="btn-export">Export .YDP</button>
+      <label class="sys"><input id="chk-led" type="checkbox" checked> Amp LED</label>
+      <label class="sys"><input id="chk-wide" type="checkbox"> Wide</label>
+      <button id="btn-console" title="Open the SysEx console — traffic is logged only while it is open">Console</button>
+      <div class="conn">
+        <span id="conn-dot" class="dot offline"></span>
+        <span id="conn-label">No amp detected</span>
+        <button id="btn-connect">Connect</button>
+      </div>
+    </footer>
+    </div>
+  </main>
+
+  <dialog id="console-dialog" class="console">
+    <div class="console-head">
+      <h2>SysEx console</h2>
+      <button type="button" id="btn-close-console">Close</button>
+    </div>
+    <pre id="log" aria-live="polite"></pre>
+    <form id="send-form">
+      <input id="hex-input" type="text" spellcheck="false"
+             placeholder="Send raw SysEx as hex, e.g. F0 43 7D 20 44 54 41 31 41 6C 6C 50 F7">
+      <button type="submit">Send</button>
+      <button type="button" id="btn-clear-log">Clear</button>
+    </form>
+  </dialog>
+
+  <div id="toast" hidden></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
