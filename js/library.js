@@ -109,37 +109,46 @@ export class Library {
     name.className = 'lib-name';
     name.textContent = patch ? (patch.name || '(unnamed)') : 'Empty';
 
-    // Double-click a stored slot's name to rename it in place.
-    if (patch) {
-      btn.title = 'Click to load — double-click the name to rename';
-      name.addEventListener('dblclick', e => {
-        e.stopPropagation();
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.maxLength = 48;
-        input.className = 'lib-rename';
-        input.value = patch.name;
-        let done = false;
-        const commit = apply => {
-          if (done) return;
-          done = true;
-          if (apply) {
-            patch.name = input.value.trim();
-            this.#persist();
-          }
-          this.#renderSlot(i);
-        };
-        input.addEventListener('keydown', ev => {
-          ev.stopPropagation();
-          if (ev.key === 'Enter') commit(true);
-          else if (ev.key === 'Escape') commit(false);
-        });
-        input.addEventListener('blur', () => commit(true));
-        name.replaceWith(input);
-        input.focus();
-        input.select();
+    // Double-click a slot's name: rename it — or, on an empty slot, name it
+    // and save the current patch into it in one gesture.
+    btn.title = patch
+      ? 'Click to load — double-click the name to rename'
+      : 'Double-click the name to save the current patch here';
+    name.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.maxLength = 48;
+      input.className = 'lib-rename';
+      input.value = patch ? patch.name : '';
+      input.placeholder = 'Name…';
+      let done = false;
+      const commit = apply => {
+        if (done) return;
+        done = true;
+        const text = input.value.trim();
+        if (apply && patch) {
+          patch.name = text;
+          this.#persist();
+        } else if (apply && !patch && text) {
+          const saved = this.ctx.getPatch().clone();
+          saved.name = text;
+          this.slots[i] = saved;
+          this.#persist();
+          this.ctx.notify(`Saved "${text}" to slot ${i + 1}`);
+        }
+        this.#renderSlot(i);
+      };
+      input.addEventListener('keydown', ev => {
+        ev.stopPropagation();
+        if (ev.key === 'Enter') commit(true);
+        else if (ev.key === 'Escape') commit(false);
       });
-    }
+      input.addEventListener('blur', () => commit(true));
+      name.replaceWith(input);
+      input.focus();
+      input.select();
+    });
 
     btn.append(num, name);
     btn.addEventListener('click', () => {
