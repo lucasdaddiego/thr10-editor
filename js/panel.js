@@ -38,9 +38,7 @@ export class Panel {
 
   renderAll() {
     this.roots.amp.textContent = '';
-    const brand = el('div', 'brand', 'THR10 ');
-    brand.append(el('span', null, 'Editor'));
-    this.roots.amp.append(brand, this.#ampControls());
+    this.roots.amp.append(this.#ampControls());
     this.roots.blocks.textContent = '';
     for (const block of BLOCKS) this.roots.blocks.append(this.#blockRow(block));
   }
