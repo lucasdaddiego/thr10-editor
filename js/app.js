@@ -138,7 +138,7 @@ function undo() {
   while ((prev = undoStack.pop()) && prev.equals(patch)) { /* skip no-ops */ }
   if (!prev) return toast('Nothing to undo');
   patch = prev;
-  panel.renderAll();
+  panel.refreshAll();
   sendFullPatch('undo');
   toast('Undo');
 }
@@ -247,7 +247,7 @@ const library = new Library(document.getElementById('lib-list'), {
   onLoad: (loaded, slot) => {
     pushUndo(true);
     patch = loaded;
-    panel.renderAll();
+    panel.refreshAll();
     if (sendFullPatch(`library slot ${slot + 1}`)) {
       toast(`"${patch.name || '(unnamed)'}" sent to the amp`);
     } else {
@@ -328,7 +328,7 @@ midi.addEventListener('sysex', e => {
       patch = ev.patch;
       dumpSnapshot = patch.clone();
       setDirty(false);
-      panel.renderAll();
+      panel.refreshAll();
       logLine(`IN  full dump: "${patch.name || '(unnamed)'}"${patch.checksumOk ? '' : ' — CHECKSUM MISMATCH'}`);
       logLine(() => `    raw: ${toHex(data.subarray(0, 40))} … (${data.length} bytes)`);
       break;
@@ -385,7 +385,7 @@ async function importYdpFile(file) {
   try {
     pushUndo(true);
     patch = patchFromYdp(new Uint8Array(await file.arrayBuffer()));
-    panel.renderAll();
+    panel.refreshAll();
     logLine(`Loaded "${patch.name || file.name}"`);
     if (sendFullPatch('YDP import')) {
       toast(`"${patch.name || file.name}" sent to the amp`);

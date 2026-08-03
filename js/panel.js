@@ -50,8 +50,19 @@ export class Panel {
     }
   }
 
+  // Refresh every control from the patch in place. A dump arrives after every
+  // connect and model/type resync; rebuilding the DOM there would drop focus
+  // and kill an in-flight knob drag. Only a block whose selected type changed
+  // is rebuilt — its param list is different.
+  refreshAll() {
+    this.#refreshLedList(this.modelList, this.patch.ampModel);
+    this.#refreshLedList(this.cabList, this.patch.cabinet);
+    for (const knob of KNOBS) this.#setKnob(knob.pp, this.patch.getKnob(knob));
+    for (const block of BLOCKS) this.#refreshBlock(block);
+  }
+
   // Called for an incoming param notification already applied to the patch.
-  // Type/on-off changes re-render the row; values update in place.
+  // A type change rebuilds the row; everything else updates in place.
   refreshParam(resolution) {
     switch (resolution.kind) {
       case 'ampModel':
@@ -65,7 +76,7 @@ export class Panel {
         break;
       case 'type':
       case 'onoff':
-        this.#rerenderBlock(resolution.block);
+        this.#refreshBlock(resolution.block);
         break;
       case 'param':
         if (resolution.param.enum) this.#setEnumList(resolution.param.pp, this.patch.getParam(resolution.block, resolution.param));
@@ -78,9 +89,22 @@ export class Panel {
     return this.roots.amp.querySelector(selector) ?? this.roots.blocks.querySelector(selector);
   }
 
-  #rerenderBlock(block) {
+  #refreshBlock(block) {
     const row = this.roots.blocks.querySelector(`[data-block="${block.key}"]`);
-    if (row) row.replaceWith(this.#blockRow(block));
+    if (!row) return;
+    if (block.types && Number(row.dataset.type) !== this.patch.getType(block)) {
+      row.replaceWith(this.#blockRow(block)); // new type → new param list
+      return;
+    }
+    const on = this.patch.isOn(block);
+    const push = row.querySelector('.push');
+    push.classList.toggle('on', on);
+    push.setAttribute('aria-pressed', String(on));
+    row.classList.toggle('off', !on);
+    for (const param of paramsForType(block, this.patch)) {
+      if (param.enum) this.#setEnumList(param.pp, this.patch.getParam(block, param));
+      else this.#setKnob(param.pp, this.patch.getParam(block, param));
+    }
   }
 
   #setEnumList(pp, value) {
@@ -160,6 +184,7 @@ export class Panel {
   #blockRow(block) {
     const row = el('section', 'block-row');
     row.dataset.block = block.key;
+    if (block.types) row.dataset.type = this.patch.getType(block);
 
     row.append(el('h2', 'block-title', block.label)); // silk-screen label, top left
 
@@ -182,7 +207,7 @@ export class Panel {
       side.append(this.#ledList(block.types, this.patch.getType(block), i => {
         this.patch.setType(block, i);
         this.ctx.send(block.typePP, i);
-        this.#rerenderBlock(block); // re-list params for the new type
+        this.#refreshBlock(block); // re-list params for the new type
         this.ctx.resync(); // amp-side param defaults for the new type are unknown
       }));
     }
