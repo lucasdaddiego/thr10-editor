@@ -14,9 +14,9 @@ Intel-only and dies with Rosetta 2's removal in macOS 28.
 
 ## Running
 
-Hosted at **https://thr.daddiego.com.ar/** (Cloudflare Workers static
-assets; deploy with `wrangler deploy`). A mirror also serves from GitHub
-Pages at https://lucasdaddiego.github.io/thr10-editor/ on every push.
+Hosted at **https://thr.daddiego.com.ar/** — every push to `master` runs
+the protocol tests and deploys via GitHub Actions (Cloudflare Workers
+static assets; `wrangler deploy` also works manually).
 
 Open in Chrome, connect the amp over USB, grant the MIDI/SysEx permission
 once. Installable via Chrome's "Install app" and works offline afterwards
