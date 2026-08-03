@@ -682,3 +682,8 @@ body.offline .conn-btn .dot::after {
   opacity: 0.45;
   cursor: default;
 }
+
+.push-toggle:has(input:disabled) {
+  opacity: 0.45;
+  cursor: default;
+}

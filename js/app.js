@@ -287,6 +287,9 @@ midi.addEventListener('connection', e => {
   ampRoot.inert = !connected;
   blocksRoot.inert = !connected;
   btnDump.disabled = !connected;
+  btnConsole.disabled = !connected;
+  chkLed.disabled = !connected;
+  chkWide.disabled = !connected;
   connDot.className = `dot ${connected ? 'online' : 'offline'}`;
   connLabel.textContent = connected ? (ampModelName ?? name) : 'Connect';
   logLine(connected ? `THR port found: ${name}` : 'THR port lost/not found');
