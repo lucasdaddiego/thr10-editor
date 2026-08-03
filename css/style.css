@@ -346,9 +346,7 @@ input.value-edit:focus { border-color: var(--amber); }
   align-items: center;
   gap: 0.7rem;
 }
-.block-side.typed { width: 14rem; } /* uniform knob origin for typed blocks */
-/* type lists sit beside the push button — two balanced columns */
-.block-side .model-list { grid-template-rows: repeat(2, auto); }
+.block-side.typed { width: 10rem; } /* uniform knob origin for typed blocks */
 
 /* Unified on/off: the push button carries its own LED lens in the centre. */
 .push {
