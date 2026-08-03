@@ -21,8 +21,6 @@ const sendForm = document.getElementById('send-form');
 const hexInput = document.getElementById('hex-input');
 const btnClearLog = document.getElementById('btn-clear-log');
 const btnDump = document.getElementById('btn-dump');
-const btnSendPatch = document.getElementById('btn-send-patch');
-const nameInput = document.getElementById('patch-name');
 const dirtyDot = document.getElementById('dirty-dot');
 const chkLed = document.getElementById('chk-led');
 const chkWide = document.getElementById('chk-wide');
@@ -141,7 +139,6 @@ function undo() {
   while ((prev = undoStack.pop()) && prev.equals(patch)) { /* skip no-ops */ }
   if (!prev) return toast('Nothing to undo');
   patch = prev;
-  nameInput.value = patch.name;
   panel.renderAll();
   sendFullPatch('undo');
   toast('Undo');
@@ -250,7 +247,6 @@ const library = new Library(document.getElementById('lib-list'), {
   onLoad: (loaded, slot) => {
     pushUndo(true);
     patch = loaded;
-    nameInput.value = patch.name;
     panel.renderAll();
     if (sendFullPatch(`library slot ${slot + 1}`)) {
       toast(`"${patch.name || '(unnamed)'}" sent to the amp`);
@@ -260,10 +256,7 @@ const library = new Library(document.getElementById('lib-list'), {
   },
 });
 
-btnLibSave.addEventListener('click', () => {
-  patch.name = nameInput.value;
-  library.saveSlot(patch);
-});
+btnLibSave.addEventListener('click', () => library.saveSlot(patch));
 
 btnLibExport.addEventListener('click', () => {
   downloadFile(library.exportYdl(), 'THR10.YDL');
@@ -291,7 +284,7 @@ midi.addEventListener('connection', e => {
   const { connected, name } = e.detail;
   if (!connected) ampModelName = null; // a different amp may appear next
   connDot.className = `dot ${connected ? 'online' : 'offline'}`;
-  connLabel.textContent = connected ? (ampModelName ?? name) : 'No amp detected';
+  connLabel.textContent = connected ? (ampModelName ?? name) : 'Connect';
   logLine(connected ? `THR port found: ${name}` : 'THR port lost/not found');
   if (connected) requestDump(); // in case we missed the amp's announce
 });
@@ -325,7 +318,6 @@ midi.addEventListener('sysex', e => {
       patch = ev.patch;
       dumpSnapshot = patch.clone();
       setDirty(false);
-      nameInput.value = patch.name;
       panel.renderAll();
       logLine(`IN  full dump: "${patch.name || '(unnamed)'}"${patch.checksumOk ? '' : ' — CHECKSUM MISMATCH'}`);
       logLine(() => `    raw: ${toHex(data.subarray(0, 40))} … (${data.length} bytes)`);
@@ -369,17 +361,6 @@ btnConnect.addEventListener('click', () => connect(true));
 
 btnDump.addEventListener('click', requestDump);
 
-btnSendPatch.addEventListener('click', () => {
-  patch.name = nameInput.value;
-  if (sendFullPatch('Send Amp')) {
-    toast(`Patch "${patch.name || '(unnamed)'}" sent to the amp's edit buffer`);
-  } else if (!midi.connected) {
-    logError('no amp connected');
-  }
-});
-
-nameInput.addEventListener('input', () => setDirty(true));
-
 function downloadFile(bytes, filename) {
   const blob = new Blob([bytes], { type: 'application/octet-stream' });
   const a = document.createElement('a');
@@ -394,11 +375,13 @@ async function importYdpFile(file) {
   try {
     pushUndo(true);
     patch = patchFromYdp(new Uint8Array(await file.arrayBuffer()));
-    nameInput.value = patch.name;
     panel.renderAll();
-    setDirty(true);
     logLine(`Loaded "${patch.name || file.name}"`);
-    toast(`Loaded "${patch.name || file.name}" — press "Send Amp" to hear it`);
+    if (sendFullPatch('YDP import')) {
+      toast(`"${patch.name || file.name}" sent to the amp`);
+    } else {
+      toast(`Loaded "${patch.name || file.name}" — connect to hear it`);
+    }
   } catch (err) {
     logError(`importing ${file.name}: ${err.message}`);
   }

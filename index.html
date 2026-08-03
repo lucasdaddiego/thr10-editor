@@ -28,21 +28,15 @@
     <div class="main-col">
     <section class="amp-face">
       <div class="face-top">
-        <div class="brand">THR10 <span>Editor</span></div>
-        <div class="patch-slot">
-          <label for="patch-name">Patch Name <span id="dirty-dot" title="Edited since the last sync with the amp" hidden>●</span></label>
-          <input id="patch-name" type="text" maxlength="48" spellcheck="false" autocomplete="off">
-        </div>
+        <div class="brand">THR10 <span>Editor</span> <span id="dirty-dot" title="Edited since the last sync with the amp" hidden>●</span></div>
         <button id="btn-dump" title="Ask the amp for its current settings">Read Amp</button>
-        <button id="btn-send-patch" title="Send the whole patch to the amp's edit buffer">Send Amp</button>
         <label class="sys"><input id="chk-led" type="checkbox" checked> Amp LED</label>
         <label class="sys"><input id="chk-wide" type="checkbox"> Wide</label>
         <button id="btn-console" title="Open the SysEx console — traffic is logged only while it is open">Console</button>
-        <div class="conn">
+        <button id="btn-connect" class="conn-btn" title="Connection status — click to (re)connect">
           <span id="conn-dot" class="dot offline"></span>
-          <span id="conn-label">No amp detected</span>
-          <button id="btn-connect">Connect</button>
-        </div>
+          <span id="conn-label">Connect</span>
+        </button>
       </div>
       <div id="amp-root"></div>
     </section>
