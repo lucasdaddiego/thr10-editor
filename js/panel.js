@@ -86,8 +86,9 @@ export class Panel {
     if (knob) knob._thrSet(value);
   }
 
-  #refreshLedList(list, selected) {
-    [...list.children].forEach((item, i) => {
+  // root may be a single list or a wrapper of grouped lists; DOM order = byte order
+  #refreshLedList(root, selected) {
+    [...root.querySelectorAll('.model-item')].forEach((item, i) => {
       item.classList.toggle('on', i === selected);
       item.setAttribute('aria-pressed', String(i === selected));
     });
@@ -100,12 +101,24 @@ export class Panel {
 
     const left = el('div', 'amp-left');
     left.append(el('h2', 'amp-title', 'Amplifier'));
-    this.modelList = this.#ledList(this.labels.amps, this.patch.ampModel, i => {
+    // Bytes 0–4 are guitar amp models; 5–7 (Bass/Aco/Flat) are the amp's
+    // special modes — grouped apart, matching the hardware's knob layout.
+    const selectModel = i => {
       this.patch.ampModel = i;
       this.#refreshLedList(this.modelList, i);
       this.ctx.send(AMP_MODEL_PP, i);
       this.ctx.resync(); // the amp re-applies the model's default cabinet
-    });
+    };
+    const amps = this.labels.amps;
+    const sel = this.patch.ampModel;
+    this.modelList = el('div', 'amp-model-groups');
+    this.modelList.append(this.#ledList(amps.slice(0, 5), sel < 5 ? sel : -1, i => selectModel(i)));
+    if (amps.length > 5) {
+      const special = this.#ledList(amps.slice(5), sel >= 5 ? sel - 5 : -1, i => selectModel(i + 5));
+      [...special.children].forEach(item =>
+        item.title = 'Special mode — not a guitar amp model');
+      this.modelList.append(special);
+    }
     left.append(this.modelList);
     wrap.append(left);
 
@@ -115,6 +128,12 @@ export class Panel {
       this.patch.cabinet = i;
       this.#refreshLedList(this.cabList, i);
       this.ctx.send(CABINET_PP, i);
+    });
+    [...this.cabList.children].forEach(item => {
+      if (item.querySelector('.mname')?.textContent === 'None') {
+        item.title = 'Cabinet simulation bypass — flat, full-range output. '
+          + 'Note: changing the amp model re-applies that model’s default cabinet.';
+      }
     });
     cab.append(this.cabList);
     wrap.append(cab);

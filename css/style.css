@@ -191,6 +191,15 @@ button { font: inherit; cursor: pointer; }
   grid-template-rows: repeat(4, auto);
   gap: 0.12rem 0.7rem;
 }
+
+/* Amp models: guitar models in one column, special modes set apart */
+.amp-model-groups { display: flex; }
+.amp-model-groups .model-list { grid-template-rows: repeat(5, auto); }
+.amp-model-groups .model-list + .model-list {
+  border-left: 1px solid rgba(47, 40, 24, 0.25);
+  margin-left: 0.7rem;
+  padding-left: 0.7rem;
+}
 .model-item {
   display: flex;
   align-items: center;
