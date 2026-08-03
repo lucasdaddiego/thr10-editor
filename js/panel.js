@@ -40,7 +40,14 @@ export class Panel {
     this.roots.amp.textContent = '';
     this.roots.amp.append(this.#ampControls());
     this.roots.blocks.textContent = '';
-    for (const block of BLOCKS) this.roots.blocks.append(this.#blockRow(block));
+    // Bands pair blocks per row; the second block in a band takes its natural
+    // width (so Delay/Gate never wrap) and the first absorbs the rest.
+    const bands = [['compressor'], ['modulation', 'delay'], ['reverb', 'gate']];
+    for (const keys of bands) {
+      const band = el('div', 'band');
+      for (const key of keys) band.append(this.#blockRow(BLOCKS.find(b => b.key === key)));
+      this.roots.blocks.append(band);
+    }
   }
 
   // Called for an incoming param notification already applied to the patch.

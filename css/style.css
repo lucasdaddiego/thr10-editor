@@ -192,14 +192,20 @@ button { font: inherit; cursor: pointer; }
   gap: 0.12rem 0.7rem;
 }
 
-/* Amp models: guitar models in one column, special modes set apart */
+/* Amp models: guitar models in one column, special modes set apart and
+   vertically centred against them */
 .amp-model-groups { display: flex; }
 .amp-model-groups .model-list { grid-template-rows: repeat(5, auto); }
 .amp-model-groups .model-list + .model-list {
+  grid-template-rows: repeat(3, auto);
+  align-content: center;
   border-left: 1px solid rgba(47, 40, 24, 0.25);
   margin-left: 0.7rem;
   padding-left: 0.7rem;
 }
+/* group titles share one line at the top; knobs stay bottom-aligned */
+.amp-left,
+.amp-cab { align-self: flex-start; }
 .model-item {
   display: flex;
   align-items: center;
@@ -297,21 +303,20 @@ input.value-edit:focus { border-color: var(--amber); }
 
 /* --------------------------------------------------------- effect rows */
 
-/* Row bands sized so every block keeps its controls on ONE line:
-   Compressor (6 controls in Rack mode) gets the full width, Effect+Delay
-   split evenly, and Reverb (7 knobs) takes 3/4 next to the narrow Gate.
-   Placement by span, so the schema/DOM order stays protocol-ordered. */
+/* Bands: Compressor alone, Effect+Delay, Reverb+Gate. The second block in
+   a band is content-sized (Delay/Gate keep one knob line at any width);
+   the first stretches to fill. */
 .block-rows {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 5px;
   margin-top: 5px;
 }
-.block-row[data-block="compressor"] { grid-row: 1; grid-column: 1 / -1; }
-.block-row[data-block="modulation"] { grid-row: 2; grid-column: 1 / 8; }
-.block-row[data-block="delay"]      { grid-row: 2; grid-column: 8 / -1; }
-.block-row[data-block="reverb"]     { grid-row: 3; grid-column: 1 / 10; border-bottom-left-radius: 8px; }
-.block-row[data-block="gate"]       { grid-row: 3; grid-column: 10 / -1; border-bottom-right-radius: 8px; }
+.band { display: flex; gap: 5px; }
+.band > .block-row { flex: 1 1 auto; min-width: 0; }
+.band > .block-row + .block-row { flex: 0 0 auto; }
+.block-row[data-block="reverb"] { border-bottom-left-radius: 8px; }
+.block-row[data-block="gate"]   { border-bottom-right-radius: 8px; }
 
 .block-row {
   display: grid;
@@ -579,7 +584,7 @@ dialog.console::backdrop { background: rgba(0, 0, 0, 0.55); }
   .chassis { display: block; }
   .library { contain: none; margin-bottom: 6px; border-radius: 8px; }
   #lib-list { max-height: 10rem; }
-  .block-rows { display: flex; flex-direction: column; }
+  .band { flex-direction: column; }
   .amp-controls { flex-wrap: wrap; }
   /* stacked amp sections: vertical dividers would dangle */
   .amp-cab,
