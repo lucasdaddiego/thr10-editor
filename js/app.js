@@ -206,7 +206,7 @@ function requestDump() {
 }
 
 function sendSystem(func, on, what) {
-  if (!midi.connected) return logError('no amp connected');
+  if (!midi.connected) return; // synced to the amp on the next connect
   try {
     midi.send(msgSystem(func, on));
     logLine(`OUT ${what} ${on ? 'on' : 'off'}`);
@@ -284,7 +284,10 @@ midi.addEventListener('connection', e => {
   connDot.className = `dot ${connected ? 'online' : 'offline'}`;
   connLabel.textContent = connected ? (ampModelName ?? name) : 'Connect';
   logLine(connected ? `THR port found: ${name}` : 'THR port lost/not found');
-  if (connected) requestDump(); // in case we missed the amp's announce
+  if (connected) {
+    requestDump(); // in case we missed the amp's announce
+    syncSystemToAmp(); // write-only settings: make the amp match the lenses
+  }
 });
 
 // Verified on real hardware: the amp emits its announce again right after
@@ -396,8 +399,29 @@ window.addEventListener('drop', e => {
   else toast('Drop a .YDP patch or .YDL library file');
 });
 
-chkLed.addEventListener('change', () => sendSystem(SYS_LED, chkLed.checked, 'amp LED'));
-chkWide.addEventListener('change', () => sendSystem(SYS_WIDE, chkWide.checked, 'wide stereo'));
+// LED/Wide are write-only in the protocol (not readable, not in the dump),
+// so the UI is the source of truth: state persists locally and is pushed to
+// the amp on every connect, keeping the lenses accurate.
+const SYS_KEY = 'thr10.system.v1';
+try {
+  const sys = JSON.parse(localStorage.getItem(SYS_KEY) || '{}');
+  if (typeof sys.led === 'boolean') chkLed.checked = sys.led;
+  if (typeof sys.wide === 'boolean') chkWide.checked = sys.wide;
+} catch { /* corrupt store — keep defaults */ }
+
+function persistSystem() {
+  try {
+    localStorage.setItem(SYS_KEY, JSON.stringify({ led: chkLed.checked, wide: chkWide.checked }));
+  } catch { /* storage full — settings just won't survive reload */ }
+}
+
+function syncSystemToAmp() {
+  sendSystem(SYS_LED, chkLed.checked, 'amp LED');
+  sendSystem(SYS_WIDE, chkWide.checked, 'wide stereo');
+}
+
+chkLed.addEventListener('change', () => { persistSystem(); sendSystem(SYS_LED, chkLed.checked, 'amp LED'); });
+chkWide.addEventListener('change', () => { persistSystem(); sendSystem(SYS_WIDE, chkWide.checked, 'wide stereo'); });
 
 // ------------------------------------------------------------- SysEx console
 
