@@ -1,0 +1,13 @@
+// Cloudflare Workers static-assets deploy of the THR10 editor.
+// `wrangler deploy` uploads the site and provisions the custom domain
+// (DNS record + certificate) automatically.
+{
+  "name": "thr10-editor",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "."
+  },
+  "routes": [
+    { "pattern": "thr.daddiego.com.ar", "custom_domain": true }
+  ]
+}

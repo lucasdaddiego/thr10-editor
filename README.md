@@ -14,9 +14,14 @@ Intel-only and dies with Rosetta 2's removal in macOS 28.
 
 ## Running
 
-Hosted at **https://lucasdaddiego.github.io/** — open in Chrome,
-connect the amp over USB, grant the MIDI/SysEx permission once. Installable
-via Chrome's "Install app" and works offline afterwards (service worker).
+Hosted at **https://thr.daddiego.com.ar/** (Cloudflare Workers static
+assets; deploy with `wrangler deploy`). A mirror also serves from GitHub
+Pages at https://lucasdaddiego.github.io/thr10-editor/ on every push.
+
+Open in Chrome, connect the amp over USB, grant the MIDI/SysEx permission
+once. Installable via Chrome's "Install app" and works offline afterwards
+(service worker). Note the preset library lives in the browser's
+localStorage, so it is per-origin (and per-profile).
 
 ## Running locally
 
