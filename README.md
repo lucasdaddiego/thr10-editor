@@ -14,7 +14,7 @@ Intel-only and dies with Rosetta 2's removal in macOS 28.
 
 ## Running
 
-Hosted at **https://lucasdaddiego.github.io/thr10-editor/** — open in Chrome,
+Hosted at **https://lucasdaddiego.github.io/** — open in Chrome,
 connect the amp over USB, grant the MIDI/SysEx permission once. Installable
 via Chrome's "Install app" and works offline afterwards (service worker).
 
