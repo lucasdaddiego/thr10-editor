@@ -26,11 +26,16 @@ export class Library {
   }
 
   saveSlot(patch) {
-    this.slots[this.selected] = patch.clone();
+    const saved = patch.clone();
+    const existing = this.slots[this.selected];
+    // The slot owns its name: saving updates the sound, renaming is the
+    // explicit double-click gesture. Only an empty slot takes the patch's name.
+    if (existing?.name) saved.name = existing.name;
+    this.slots[this.selected] = saved;
     this.#persist();
     this.#renderSlot(this.selected);
-    this.ctx.notify(patch.name
-      ? `Saved "${patch.name}" to slot ${this.selected + 1}`
+    this.ctx.notify(saved.name
+      ? `Saved "${saved.name}" to slot ${this.selected + 1}`
       : `Saved to slot ${this.selected + 1} — double-click its name to rename`);
   }
 
