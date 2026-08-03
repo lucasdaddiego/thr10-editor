@@ -11,6 +11,7 @@ export class Library {
   /**
    * @param listEl <ol> the slot list renders into
    * @param ctx {
+   *   getPatch(): Patch        — current edit buffer (for the save icon)
    *   onLoad(patch, slotIndex) — user clicked a non-empty slot; patch is a clone
    *   notify(text)             — toast
    * }
@@ -90,6 +91,7 @@ export class Library {
 
   #slotRow(i) {
     const li = document.createElement('li');
+    li.className = 'lib-row';
     const btn = document.createElement('button');
     btn.type = 'button';
     const patch = this.slots[i];
@@ -136,6 +138,9 @@ export class Library {
 
     btn.append(num, name);
     btn.addEventListener('click', () => {
+      // Clicking the already-selected slot is a no-op: re-rendering here would
+      // swap the DOM node mid-double-click and swallow the rename gesture.
+      if (i === this.selected) return;
       const prev = this.selected;
       this.selected = i;
       this.#renderSlot(prev);
@@ -143,6 +148,20 @@ export class Library {
       if (this.slots[i]) this.ctx.onLoad(this.slots[i].clone(), i);
     });
     li.append(btn);
+
+    if (i === this.selected) {
+      const save = document.createElement('button');
+      save.type = 'button';
+      save.className = 'lib-save';
+      save.title = 'Save the current patch into this slot';
+      save.setAttribute('aria-label', `Save current patch to slot ${i + 1}`);
+      save.innerHTML = '<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M2 2h9.2L14 4.8V14H2V2zm2.5 1.2v3.3h6V3.2h-6zm-.4 6.2V13h7.8V9.4H4.1z"/></svg>';
+      save.addEventListener('click', e => {
+        e.stopPropagation();
+        this.saveSlot(this.ctx.getPatch());
+      });
+      li.append(save);
+    }
     return li;
   }
 }

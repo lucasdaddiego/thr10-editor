@@ -40,7 +40,7 @@ button { font: inherit; cursor: pointer; }
   max-width: 1560px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 14rem minmax(0, 1fr);
+  grid-template-columns: 10.5rem minmax(0, 1fr);
   gap: 6px;
   align-items: stretch;
 }
@@ -103,7 +103,7 @@ button { font: inherit; cursor: pointer; }
 .lib-slot.selected .lib-num { color: var(--amber); }
 
 .lib-actions { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
-.library button,
+.lib-actions button,
 .library .file-btn {
   flex: 1;
   background: #2b2b30;
@@ -118,7 +118,7 @@ button { font: inherit; cursor: pointer; }
   padding: 0.3rem 0.55rem;
   box-shadow: none;
 }
-.library button:hover,
+.lib-actions button:hover,
 .library .file-btn:hover { filter: brightness(1.2); }
 
 /* ------------------------------------------------------------ amp face */
@@ -596,3 +596,24 @@ dialog.console::backdrop { background: rgba(0, 0, 0, 0.55); }
   padding: 0 0.2rem;
   outline: none;
 }
+
+.lib-row {
+  display: flex;
+  align-items: stretch;
+}
+.lib-row .lib-slot { flex: 1; min-width: 0; }
+.lib-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lib-save {
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  padding: 0 0.3rem;
+  color: #8f8f94;
+  display: flex;
+  align-items: center;
+}
+.lib-save:hover { color: var(--amber); }

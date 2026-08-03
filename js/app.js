@@ -30,7 +30,6 @@ const consoleDialog = document.getElementById('console-dialog');
 const toastEl = document.getElementById('toast');
 const ampRoot = document.getElementById('amp-root');
 const blocksRoot = document.getElementById('blocks-root');
-const btnLibSave = document.getElementById('btn-lib-save');
 const btnLibExport = document.getElementById('btn-lib-export');
 const libImport = document.getElementById('lib-import');
 
@@ -244,6 +243,7 @@ const panel = new Panel({ amp: ampRoot, blocks: blocksRoot }, {
 
 const library = new Library(document.getElementById('lib-list'), {
   notify: toast,
+  getPatch: () => patch,
   onLoad: (loaded, slot) => {
     pushUndo(true);
     patch = loaded;
@@ -255,8 +255,6 @@ const library = new Library(document.getElementById('lib-list'), {
     }
   },
 });
-
-btnLibSave.addEventListener('click', () => library.saveSlot(patch));
 
 btnLibExport.addEventListener('click', () => {
   downloadFile(library.exportYdl(), 'THR10.YDL');
