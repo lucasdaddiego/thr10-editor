@@ -3,6 +3,8 @@
 // (DNS record + certificate) automatically.
 {
   "name": "thr10-editor",
+  // account comes from CLOUDFLARE_ACCOUNT_ID (CI repo variable) or the local
+  // wrangler OAuth session
   "compatibility_date": "2026-07-01",
   "assets": {
     "directory": "."
