@@ -447,8 +447,30 @@ the type-select message (`x0`) before/independently of the value messages.
 | `07` | Flat | Flat |
 
 THR10X and THR5A name tables are **empty stubs** in `Amps.changeAmpButtonText`
-(the code returns `""` for models other than THR10/THR10C) — names for those
-devices are unknown here (Open questions).
+(the code returns `""` for models other than THR10/THR10C).
+
+> **Resolved 2026-08-02** from the official THR Editor V1.1.0 Windows binary
+> and its factory `.YDL` preset banks (byte-verified against preset names),
+> corroborated by the Yamaha owner's manual and Nhysius/thr10x-controller:
+>
+> | Value | THR10X | THR5A |
+> |-------|--------|-------|
+> | `00` | Power I | EG Clean |
+> | `01` | Power II | Nylon |
+> | `02` | Brown I | Tube |
+> | `03` | Brown II | Dynamic |
+> | `04` | Southern Hi | Condenser |
+> | `05` | Clean | — |
+> | `06` | Bass | — |
+> | `07` | Flat | — |
+>
+> **THR5A byte order is the REVERSE of its front-panel order** (panel reads
+> Condenser→EG CLN; all 15+ factory presets confirm bytes run EG Clean=0 …
+> Condenser=4). THR5 uses the THR10 table (panel has only the first five;
+> the shared `THR5_10.YDL` bank contains amp=5–7 presets too). In general,
+> panel/menu order ≠ byte order on this protocol — the modulation types are
+> another instance (bytes Chorus=0, Flanger=1, Tremolo=2, Phaser=3 while the
+> official menu displays Phaser before Tremolo).
 
 ### 7.2 Cabinet enum (payload byte 6 / param `0x06`)
 
@@ -467,8 +489,26 @@ devices are unknown here (Open questions).
 † The THR10C column is internally inconsistent between
 `SysExCommands.CabinetType.toString()` and `Cabinets.changeCabinetButtonText()`
 (the latter labels both `btn1x12` and `btnUS2x12` "Boutique 2x12" and maps
-`4x10`→"Yamaha 2x12", `US4x12`→"BritBlues 2x12") — treat THR10C cabinet names
-as unverified.
+`4x10`→"Yamaha 2x12", `US4x12`→"BritBlues 2x12") — the Java tables are buggy;
+do not copy them.
+
+> **Resolved 2026-08-02** from the official THR Editor V1.1.0 binary
+> (pulldown string tables; the THR10 table matches the known byte order at
+> all positions, validating the layout) plus factory-preset semantics:
+>
+> | Value | THR10C | THR10X |
+> |-------|--------|--------|
+> | `00` | Brit Blues 2x12 | Fuel 4x12 |
+> | `01` | Boutique 2x12 | Brown 4x12 |
+> | `02` | California 1x12 | Vintage 4x12 |
+> | `03` | American 1x12 | Juicy 4x12 |
+> | `04` | Boutique 1x12 | Mods 4x12 |
+> | `05` | Yamaha 2x12 | (no cab — used by factory Clean presets) |
+> | `06` | None | (no cab — used by the factory Bass preset) |
+>
+> The THR10X editor menu has exactly five named entries; whether the
+> canonical "None" byte is `05` or `06` on THR10X is undetermined — treat
+> `≥ 05` as None.
 
 The `thr10` firmware notes confirm each amp model has a default cabinet that is
 re-applied whenever the amp model changes; a cabinet set via SysEx survives
@@ -599,7 +639,11 @@ Not needed for an editor, but confirms conventions:
 6. **THR10X and THR5A amp/cab display names**: code stubs are empty. Byte
    values `00`–`07` presumably still apply, but names and count per device are
    unverified.
+   *Answered 2026-08-02 — see the resolved tables in §7.1/§7.2 (official
+   editor binary + factory preset banks). Remaining sliver: whether THR10X's
+   canonical no-cab byte is `05` or `06`, and the THR5A cabinet table.*
 7. **THR10C cabinet name table** is self-contradictory in the code (§7.2).
+   *Answered 2026-08-02 — resolved table in §7.2.*
 8. **Storing to the amp's physical preset buttons 1–5**: no command in this
    code. The 276-byte dump only sets the edit buffer.
 9. **`.YDP`/`.YDL` header bytes** (YDP offsets 4–8, YDL offsets 7–12): meaning

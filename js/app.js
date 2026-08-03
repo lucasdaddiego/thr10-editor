@@ -1,8 +1,7 @@
 import { ThrMidi, toHex, parseHex } from './midi.js';
 import {
   Patch, parse, resolveParam, msgAttach, msgParam, msgSystem,
-  SYS_LED, SYS_WIDE, EFFECT_ON, labelsForModel,
-  patchToYdp, patchFromYdp,
+  SYS_LED, SYS_WIDE, EFFECT_ON, labelsForModel, patchFromYdp,
 } from './protocol.js';
 import { Panel } from './panel.js';
 import { Library } from './library.js';
@@ -23,8 +22,6 @@ const hexInput = document.getElementById('hex-input');
 const btnClearLog = document.getElementById('btn-clear-log');
 const btnDump = document.getElementById('btn-dump');
 const btnSendPatch = document.getElementById('btn-send-patch');
-const btnExport = document.getElementById('btn-export');
-const fileImport = document.getElementById('file-import');
 const nameInput = document.getElementById('patch-name');
 const dirtyDot = document.getElementById('dirty-dot');
 const chkLed = document.getElementById('chk-led');
@@ -393,11 +390,6 @@ function downloadFile(bytes, filename) {
   setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
 }
 
-btnExport.addEventListener('click', () => {
-  patch.name = nameInput.value;
-  downloadFile(patchToYdp(patch), `${(patch.name || 'patch').replace(/[^\w-]+/g, '_')}.YDP`);
-});
-
 async function importYdpFile(file) {
   try {
     pushUndo(true);
@@ -411,12 +403,6 @@ async function importYdpFile(file) {
     logError(`importing ${file.name}: ${err.message}`);
   }
 }
-
-fileImport.addEventListener('change', () => {
-  const file = fileImport.files[0];
-  if (file) importYdpFile(file);
-  fileImport.value = '';
-});
 
 // Drop a .YDP (patch) or .YDL (library) anywhere on the window.
 window.addEventListener('dragover', e => e.preventDefault());

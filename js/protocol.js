@@ -87,11 +87,25 @@ const invHz = thru => s => (/^\s*t/i.test(s) ? thru : parseFloat(s));
 export const AMP_MODELS = ['Clean', 'Crunch', 'Lead', 'Brit Hi', 'Modern', 'Bass', 'Aco', 'Flat'];
 export const CABINETS = ['US 4x12', 'US 2x12', 'Brit 4x12', 'Brit 2x12', '1x12', '4x10', 'None'];
 
+// THR10C/THR10X/THR5A tables verified against the official THR Editor V1.1.0
+// binary and its factory .YDL preset banks (see PROTOCOL.md §7). Note the
+// THR5A: its byte order is the REVERSE of the front-panel order.
 export const MODEL_LABELS = {
   THR10: { amps: AMP_MODELS, cabs: CABINETS },
   THR10C: {
     amps: ['Deluxe', 'Class A', 'US Blues', 'Brit Blues', 'Mini', 'Bass', 'Aco', 'Flat'],
-    cabs: CABINETS, // THR10C cabinet names are inconsistent in the sources (§7.2)
+    cabs: ['Brit Blues 2x12', 'Boutique 2x12', 'California 1x12', 'American 1x12', 'Boutique 1x12', 'Yamaha 2x12', 'None'],
+  },
+  THR10X: {
+    amps: ['Power I', 'Power II', 'Brown I', 'Brown II', 'Southern Hi', 'Clean', 'Bass', 'Flat'],
+    // only five named cabs; factory presets use byte 5 or 6 for "no cab"
+    cabs: ['Fuel 4x12', 'Brown 4x12', 'Vintage 4x12', 'Juicy 4x12', 'Mods 4x12', 'None', 'None'],
+  },
+  // THR5 shares the THR5_10.YDL bank; bytes 5–7 (Bass/Aco/Flat) exist there
+  THR5: { amps: AMP_MODELS, cabs: CABINETS },
+  THR5A: {
+    amps: ['EG Clean', 'Nylon', 'Tube', 'Dynamic', 'Condenser'],
+    cabs: CABINETS, // acoustic model; cab table unknown, THR10 names as fallback
   },
 };
 

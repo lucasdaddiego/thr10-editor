@@ -152,8 +152,13 @@ check('clone equals original', pcClone.equals(pc), true);
 pcClone.payload[3] = 99;
 check('clone is independent', pcClone.equals(pc), false);
 
-// --- model label tables
+// --- model label tables (byte order verified against official editor banks)
 check('THR10C amp labels', labelsForModel('THR10C').amps[0], 'Deluxe');
+check('THR10C cab labels', labelsForModel('THR10C').cabs[4], 'Boutique 1x12');
+check('THR10X amp labels', labelsForModel('THR10X').amps[2], 'Brown I');
+check('THR10X cab labels', labelsForModel('THR10X').cabs[0], 'Fuel 4x12');
+check('THR5A byte order is reversed from panel', labelsForModel('THR5A').amps[0], 'EG Clean');
+check('THR5A condenser is byte 4', labelsForModel('THR5A').amps[4], 'Condenser');
 check('unknown model falls back to THR10', labelsForModel('THR9999').amps, AMP_MODELS);
 
 // --- inverse formatters (typed value entry)
