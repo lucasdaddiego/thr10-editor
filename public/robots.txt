@@ -1,5 +1,5 @@
-# thr.daddiego.com.ar: served straight from the repo root (wrangler assets
-# directory is "."), so this file needs no build step and no .assetsignore entry.
+# thr.daddiego.com.ar: served from public/, which is the whole of what this repo
+# publishes (wrangler assets directory). No build step.
 # Search: yes. AI training: no. Same policy as the other daddiego.com.ar sites.
 #
 # This file is the ONLY source of the robots.txt this site serves. Cloudflare's
