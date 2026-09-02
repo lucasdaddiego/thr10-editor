@@ -3,6 +3,9 @@ name: Test & Deploy
 on:
   push:
     branches: [master]
+  # Redeploy the current master without an empty commit — needed when the
+  # deploy itself has to be re-run (rotated token, a Cloudflare-side failure).
+  workflow_dispatch:
 
 permissions:
   contents: read
