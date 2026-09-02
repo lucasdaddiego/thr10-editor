@@ -27,9 +27,10 @@ an app (Chrome → Install) and works offline.
 
 ## Development
 
-No build step — plain HTML/JS/CSS. Serve the directory
-(`python3 -m http.server`) and open localhost; Web MIDI needs a secure
-context, which localhost is. Tests: `node tests/protocol.test.mjs`.
+No build step — plain HTML/JS/CSS. The site is `public/`, which is exactly
+what gets published; everything else in the repo stays private. Serve it
+(`python3 -m http.server -d public`) and open localhost; Web MIDI needs a
+secure context, which localhost is. Tests: `node tests/protocol.test.mjs`.
 Every push to `master` runs the tests and deploys via GitHub Actions to
 Cloudflare Workers.
 

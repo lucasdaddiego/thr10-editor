@@ -4,8 +4,8 @@ import {
   parse, resolveParam, Patch, BLOCKS, KNOBS, AMP_MODELS, CABINETS,
   patchToYdp, patchFromYdp, msgAttach, msgParam, msgSystem, SYS_LED,
   libraryToYdl, libraryFromYdl, YDL_SIZE, YDL_SLOTS, labelsForModel,
-} from '../js/protocol.js';
-import { parseHex } from '../js/midi.js';
+} from '../public/js/protocol.js';
+import { parseHex } from '../public/js/midi.js';
 
 const dump1 = Uint8Array.from([
   0xF0, 0x43, 0x7D, 0x00, 0x02, 0x0C, 0x44, 0x54, 0x41, 0x31, 0x41, 0x6C, 0x6C, 0x50, 0x00, 0x00, 0x7F, 0x7F,

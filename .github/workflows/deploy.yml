@@ -26,7 +26,7 @@ jobs:
         run: node tests/protocol.test.mjs
 
       - name: Version the service-worker cache for this deploy
-        run: sed -i "s/__BUILD__/${GITHUB_SHA:0:8}/" sw.js
+        run: sed -i "s/__BUILD__/${GITHUB_SHA:0:8}/" public/sw.js
 
       - name: Deploy to Cloudflare (thr.daddiego.com.ar)
         uses: cloudflare/wrangler-action@v3

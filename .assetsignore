@@ -1,9 +1,0 @@
-.git
-.gitignore
-.assetsignore
-wrangler.jsonc
-node_modules
-tests
-.wrangler
-.github
-.DS_Store

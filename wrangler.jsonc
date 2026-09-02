@@ -6,8 +6,12 @@
   // account comes from CLOUDFLARE_ACCOUNT_ID (CI repo variable) or the local
   // wrangler OAuth session
   "compatibility_date": "2026-07-01",
+  // Publish ONLY public/. This is an allowlist by construction: the previous
+  // setup served the repo root minus a .assetsignore denylist, which meant
+  // README.md, PROTOCOL.md and LICENSE were all fetchable on the live site and
+  // any new root file would have been published by default.
   "assets": {
-    "directory": "."
+    "directory": "public"
   },
   "routes": [
     { "pattern": "thr.daddiego.com.ar", "custom_domain": true }
