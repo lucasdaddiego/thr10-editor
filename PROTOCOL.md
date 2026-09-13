@@ -661,3 +661,6 @@ Not needed for an editor, but confirms conventions:
     `7F` for LED) is untested.
 13. **Multiple parameter changes**: no rate limiting or coalescing exists in
     the app; whether the amp needs pacing under Web MIDI bursts is unknown.
+    *This editor coalesces per-parameter sends with a 30 ms trailing delay
+    (`app.js` `sendParam`) as a precaution; whether the amp actually needs
+    it is still unverified.*
