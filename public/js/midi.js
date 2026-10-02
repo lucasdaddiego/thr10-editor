@@ -16,7 +16,9 @@ export function parseHex(text) {
       ? tok.match(/../g)
       : [tok];
     return parts.map(p => {
-      const v = parseInt(p, 16);
+      // parseInt stops at the first non-hex character ("1G" -> 1), so a typo
+      // would send a different byte instead of failing.
+      const v = /^[0-9a-f]+$/i.test(p) ? parseInt(p, 16) : NaN;
       if (Number.isNaN(v) || v < 0 || v > 0xff) throw new Error(`Bad hex byte: "${p}"`);
       return v;
     });

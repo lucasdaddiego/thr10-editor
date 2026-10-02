@@ -179,6 +179,9 @@ check('parseHex empty', parseHex('').length, 0);
 let hexThrew = false;
 try { parseHex('F0 GG'); } catch { hexThrew = true; }
 check('parseHex bad byte throws', hexThrew, true);
+let partialThrew = false;
+try { parseHex('F0 43 7D 1G F7'); } catch { partialThrew = true; }
+check('parseHex partly-hex byte throws', partialThrew, true);
 
 console.log(failures ? `\n${failures} FAILURES` : '\nALL CHECKS PASSED');
 process.exit(failures ? 1 : 0);
