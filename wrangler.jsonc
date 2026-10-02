@@ -5,7 +5,7 @@
   "name": "thr10-editor",
   // account comes from CLOUDFLARE_ACCOUNT_ID (CI repo variable) or the local
   // wrangler OAuth session
-  "compatibility_date": "2026-09-01",
+  "compatibility_date": "2026-09-29",
   // Publish ONLY public/. This is an allowlist by construction: the previous
   // setup served the repo root minus a .assetsignore denylist, which meant
   // README.md, PROTOCOL.md and LICENSE were all fetchable on the live site and
