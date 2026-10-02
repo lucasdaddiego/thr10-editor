@@ -251,7 +251,9 @@ const library = new Library(document.getElementById('lib-list'), {
     if (sendFullPatch(`library slot ${slot + 1}`)) {
       toast(`"${patch.name || '(unnamed)'}" sent to the amp`);
     } else {
-      toast(`Loaded "${patch.name || '(unnamed)'}" — connect and press "Send Amp" to hear it`);
+      // Connecting alone does not play it: on connect the amp's dump replaces
+      // the edit buffer. The slot's Reload icon sends the slot once connected.
+      toast(`Loaded "${patch.name || '(unnamed)'}" — connect, then press Reload ↻ on slot ${slot + 1} to hear it`);
     }
   },
 });
