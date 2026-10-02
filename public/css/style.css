@@ -619,7 +619,8 @@ dialog.console::backdrop { background: rgba(0, 0, 0, 0.55); }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.lib-save {
+.lib-save,
+.lib-reload {
   flex: 0 0 auto;
   background: none;
   border: none;
@@ -628,7 +629,8 @@ dialog.console::backdrop { background: rgba(0, 0, 0, 0.55); }
   display: flex;
   align-items: center;
 }
-.lib-save:hover { color: var(--amber); }
+.lib-save:hover,
+.lib-reload:hover { color: var(--amber); }
 
 /* ------------------------------------------------------- offline state */
 

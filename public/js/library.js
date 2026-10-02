@@ -1,7 +1,7 @@
 // 100-slot preset library, persisted in localStorage, interoperable with the
 // official editor's .YDL files (PROTOCOL.md §8.2). UI is the sidebar list:
 // click a slot to select + load it; Save writes the edit buffer to the
-// selected slot.
+// selected slot; Reload loads the selected slot again, discarding edits.
 
 import { Patch, YDL_SLOTS, libraryFromYdl, libraryToYdl } from './protocol.js';
 
@@ -20,7 +20,10 @@ export class Library {
     this.listEl = listEl;
     this.ctx = ctx;
     this.slots = new Array(YDL_SLOTS).fill(null);
-    this.selected = 0;
+    // A fresh page selects nothing: the edit buffer is not from any slot yet,
+    // and a click on the selected slot is a no-op, so a preselected 001 could
+    // never be loaded with a click.
+    this.selected = null;
     this.#restore();
     this.#renderAll();
   }
@@ -37,6 +40,19 @@ export class Library {
     this.ctx.notify(saved.name
       ? `Saved "${saved.name}" to slot ${this.selected + 1}`
       : `Saved to slot ${this.selected + 1} — double-click its name to rename`);
+  }
+
+  // Load the selected slot again. A click on the selected slot cannot do it
+  // (that click must stay a no-op for the double-click rename).
+  reload() {
+    const slot = this.slots[this.selected];
+    if (!slot) return;
+    // Only the sound counts as an edit: the slot owns its name (saveSlot).
+    const current = this.ctx.getPatch().clone();
+    current.name = slot.name;
+    if (!slot.equals(current) &&
+        !confirm(`Discard your unsaved edits and reload slot ${this.selected + 1}?`)) return;
+    this.ctx.onLoad(slot.clone(), this.selected);
   }
 
   hasAny() {
@@ -157,12 +173,25 @@ export class Library {
       if (i === this.selected) return;
       const prev = this.selected;
       this.selected = i;
-      this.#renderSlot(prev);
+      if (prev !== null) this.#renderSlot(prev);
       this.#renderSlot(i);
       if (this.slots[i]) this.ctx.onLoad(this.slots[i].clone(), i);
     });
     li.append(btn);
 
+    if (i === this.selected && patch) {
+      const reload = document.createElement('button');
+      reload.type = 'button';
+      reload.className = 'lib-reload';
+      reload.title = 'Reload this slot — discards unsaved edits';
+      reload.setAttribute('aria-label', `Reload slot ${i + 1}`);
+      reload.innerHTML = '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.46-3.54"/><path d="M12.5 1.5v3.5H9"/></svg>';
+      reload.addEventListener('click', e => {
+        e.stopPropagation();
+        this.reload();
+      });
+      li.append(reload);
+    }
     if (i === this.selected) {
       const save = document.createElement('button');
       save.type = 'button';

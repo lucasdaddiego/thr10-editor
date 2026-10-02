@@ -16,7 +16,8 @@ an app (Chrome → Install) and works offline.
   parameter.
 - 100-slot preset library (stored in the browser) with `.YDL` import/export
   compatible with the official editor's files. Double-click a slot's name to
-  rename it, or an empty one to save the current patch there.
+  rename it, or an empty one to save the current patch there. The selected
+  slot's Reload icon loads it again and discards unsaved edits.
 - Two-way live sync: knob turns on the amp update the UI, edits stream to
   the amp in real time. Cmd/Ctrl+Z undo. Drag & drop `.YDP`/`.YDL` files.
   Double-click a knob to revert it to the amp's value.
@@ -30,7 +31,8 @@ an app (Chrome → Install) and works offline.
 No build step — plain HTML/JS/CSS. The site is `public/`, which is exactly
 what gets published; everything else in the repo stays private. Serve it
 (`python3 -m http.server -d public`) and open localhost; Web MIDI needs a
-secure context, which localhost is. Tests: `node tests/protocol.test.mjs`.
+secure context, which localhost is. Tests: `node tests/protocol.test.mjs`
+and `node tests/library.test.mjs`.
 Every push to `master` runs the tests and deploys via GitHub Actions to
 Cloudflare Workers.
 

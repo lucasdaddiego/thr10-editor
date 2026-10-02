@@ -28,6 +28,9 @@ jobs:
       - name: Protocol tests
         run: node tests/protocol.test.mjs
 
+      - name: Library tests
+        run: node tests/library.test.mjs
+
       - name: Version the service-worker cache for this deploy
         run: sed -i "s/__BUILD__/${GITHUB_SHA:0:8}/" public/sw.js
 
