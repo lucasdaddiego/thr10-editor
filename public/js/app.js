@@ -111,6 +111,12 @@ function describeParam(pp, value) {
 // after every full-patch send. "Dirty" = local edits not yet in the amp.
 let dumpSnapshot = null;
 
+// A patch loaded while no amp was connected (library slot or .YDP import).
+// The next connect writes it to the amp instead of fetching the amp's sound
+// over it. Holds the load's description for the log; null when nothing waits.
+let pendingSend = null;
+let lastConnectSend = -Infinity;
+
 function setDirty(dirty) {
   dirtyDot.hidden = !dirty;
 }
@@ -251,9 +257,8 @@ const library = new Library(document.getElementById('lib-list'), {
     if (sendFullPatch(`library slot ${slot + 1}`)) {
       toast(`"${patch.name || '(unnamed)'}" sent to the amp`);
     } else {
-      // Connecting alone does not play it: on connect the amp's dump replaces
-      // the edit buffer. The slot's Reload icon sends the slot once connected.
-      toast(`Loaded "${patch.name || '(unnamed)'}" — connect, then press Reload ↻ on slot ${slot + 1} to hear it`);
+      if (!midi.connected) pendingSend = `library slot ${slot + 1}`;
+      toast(`Loaded "${patch.name || '(unnamed)'}" — connect to hear it`);
     }
   },
 });
@@ -296,7 +301,17 @@ midi.addEventListener('connection', e => {
   connLabel.textContent = connected ? (ampModelName ?? name) : 'Connect';
   logLine(connected ? `THR port found: ${name}` : 'THR port lost/not found');
   if (connected) {
-    requestDump(); // in case we missed the amp's announce
+    if (pendingSend) {
+      // A patch was loaded while no amp was connected: write it to the amp,
+      // don't fetch the amp's sound over it. On a failed send it stays pending.
+      if (sendFullPatch(`${pendingSend}, sent on connect`)) {
+        pendingSend = null;
+        lastConnectSend = performance.now();
+        toast(`"${patch.name || '(unnamed)'}" sent to the amp`);
+      }
+    } else {
+      requestDump(); // in case we missed the amp's announce
+    }
     syncSystemToAmp(); // write-only settings: make the amp match the lenses
   }
 });
@@ -316,7 +331,9 @@ midi.addEventListener('sysex', e => {
       panel.setLabels(labels);
       connLabel.textContent = ev.modelName;
       logLine(`IN  amp announce: ${ev.modelName}`);
-      if (performance.now() - lastDumpReceived > 2000) requestDump();
+      // ...or when it trails a connect that just wrote a pending patch: the
+      // amp already holds what the screen shows.
+      if (performance.now() - Math.max(lastDumpReceived, lastConnectSend) > 2000) requestDump();
       break;
     case 'param': {
       const r = resolveParam(ev.pp, patch); // resolve once for log + apply
@@ -392,6 +409,7 @@ async function importYdpFile(file) {
     if (sendFullPatch('YDP import')) {
       toast(`"${patch.name || file.name}" sent to the amp`);
     } else {
+      if (!midi.connected) pendingSend = 'YDP import';
       toast(`Loaded "${patch.name || file.name}" — connect to hear it`);
     }
   } catch (err) {
