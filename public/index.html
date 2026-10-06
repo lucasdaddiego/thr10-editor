@@ -23,6 +23,8 @@
   <link rel="modulepreload" href="js/midi.js">
   <link rel="modulepreload" href="js/panel.js">
   <link rel="modulepreload" href="js/library.js">
+  <link rel="modulepreload" href="js/session.js">
+  <link rel="modulepreload" href="js/demo.js">
 </head>
 <body class="offline">
   <main class="chassis">
@@ -51,6 +53,7 @@
           <input id="chk-wide" type="checkbox" disabled>
           <span class="push"></span>Wide
         </label>
+        <button id="btn-demo" type="button" title="Try the editor with a simulated amp (nothing is sent anywhere)">Demo</button>
         <button id="btn-connect" class="conn-btn" title="Connection status — click to (re)connect">
           <span id="conn-dot" class="dot offline"></span>
           <span id="conn-label">Connect</span>
@@ -77,7 +80,7 @@
     </form>
   </dialog>
 
-  <div id="toast" hidden></div>
+  <div id="toast" role="status" hidden></div>
 
   <script type="module" src="js/app.js"></script>
 </body>

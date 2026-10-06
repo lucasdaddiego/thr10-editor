@@ -26,6 +26,15 @@ export function parseHex(text) {
   return new Uint8Array(bytes);
 }
 
+// The first connected port whose name mentions THR (case-insensitive), or null.
+// Takes any iterable of MIDIPorts, so tests can pass plain objects.
+export function pickThrPort(ports) {
+  for (const p of ports) {
+    if (p.state === 'connected' && p.name && p.name.toUpperCase().includes(PORT_NAME_HINT)) return p;
+  }
+  return null;
+}
+
 export class ThrMidi extends EventTarget {
   #initPromise = null;
   #lastConnected = null;
@@ -64,12 +73,8 @@ export class ThrMidi extends EventTarget {
   }
 
   #scanPorts() {
-    const findPort = ports =>
-      [...ports.values()].find(p =>
-        p.state === 'connected' && p.name && p.name.toUpperCase().includes(PORT_NAME_HINT));
-
-    const input = findPort(this.access.inputs) ?? null;
-    const output = findPort(this.access.outputs) ?? null;
+    const input = pickThrPort(this.access.inputs.values());
+    const output = pickThrPort(this.access.outputs.values());
 
     if (input !== this.input) {
       if (this.input) this.input.onmidimessage = null;

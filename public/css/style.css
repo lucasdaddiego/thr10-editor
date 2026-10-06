@@ -689,3 +689,14 @@ body.offline .conn-btn .dot::after {
   opacity: 0.45;
   cursor: default;
 }
+
+/* The banner names the actual blocker: app.js sets body[data-reason]. */
+body.offline[data-reason="unsupported"] .main-col::after {
+  content: 'WEB MIDI NOT AVAILABLE \2014  use Chrome, Edge or another Chromium browser';
+}
+body.offline[data-reason="denied"] .main-col::after {
+  content: 'MIDI PERMISSION BLOCKED \2014  allow it in the browser site settings, then press Connect';
+}
+
+/* Demo (simulated amp): only offered while nothing is connected. */
+body:not(.offline) #btn-demo { display: none; }

@@ -1,12 +1,17 @@
 import { ThrMidi, toHex, parseHex } from './midi.js';
 import {
   Patch, parse, resolveParam, msgAttach, msgParam, msgSystem,
-  SYS_LED, SYS_WIDE, EFFECT_ON, labelsForModel, patchFromYdp,
+  SYS_LED, SYS_WIDE, EFFECT_ON, labelsForModel, patchFromYdp, ydlFileName,
 } from './protocol.js';
 import { Panel } from './panel.js';
 import { Library } from './library.js';
+import { Session } from './session.js';
+import { DemoMidi } from './demo.js';
 
-const midi = new ThrMidi();
+// ?demo: a simulated amp (demo.js) behind the same transport interface, for
+// trying the editor with nothing plugged in.
+const DEMO = new URLSearchParams(location.search).has('demo');
+const midi = DEMO ? new DemoMidi() : new ThrMidi();
 let patch = new Patch();
 let ampModelName = null;
 let labels = labelsForModel('THR10');
@@ -32,6 +37,7 @@ const ampRoot = document.getElementById('amp-root');
 const blocksRoot = document.getElementById('blocks-root');
 const btnLibExport = document.getElementById('btn-lib-export');
 const libImport = document.getElementById('lib-import');
+const btnDemo = document.getElementById('btn-demo');
 
 // ------------------------------------------------------------------- logging
 
@@ -111,12 +117,6 @@ function describeParam(pp, value) {
 // after every full-patch send. "Dirty" = local edits not yet in the amp.
 let dumpSnapshot = null;
 
-// A patch loaded while no amp was connected (library slot or .YDP import).
-// The next connect writes it to the amp instead of fetching the amp's sound
-// over it. Holds the load's description for the log; null when nothing waits.
-let pendingSend = null;
-let lastConnectSend = -Infinity;
-
 function setDirty(dirty) {
   dirtyDot.hidden = !dirty;
 }
@@ -190,25 +190,28 @@ function sendParam(pp, value) {
   pending.set(pp, value);
 }
 
-let lastDumpRequest = 0;
+// Dump requests, the write-on-connect of a patch loaded offline and the
+// announce-loop suppression live in session.js (pure, tested); this wires
+// them to the port and the log.
+const session = new Session({
+  now: () => performance.now(),
+  schedule: (fn, ms) => setTimeout(fn, ms),
+  sendAttach: () => {
+    try {
+      midi.send(msgAttach());
+      logLine('OUT DTA1AllP (dump request)');
+      return true;
+    } catch (err) {
+      logError(err.message);
+      return false;
+    }
+  },
+  sendPatch: why => sendFullPatch(why),
+  onError: logError,
+});
+
 function requestDump() {
-  if (!midi.connected) return;
-  // The connection event and the amp's own announce can both request a dump
-  // within a few ms of each other — one is enough.
-  if (performance.now() - lastDumpRequest < 250) return;
-  lastDumpRequest = performance.now();
-  try {
-    midi.send(msgAttach());
-    logLine('OUT DTA1AllP (dump request)');
-    const at = performance.now();
-    setTimeout(() => {
-      if (lastDumpReceived < at && midi.connected) {
-        logError('Amp did not answer the dump request — check the USB connection.');
-      }
-    }, 2500);
-  } catch (err) {
-    logError(err.message);
-  }
+  session.requestDump();
 }
 
 function sendSystem(func, on, what) {
@@ -257,14 +260,16 @@ const library = new Library(document.getElementById('lib-list'), {
     if (sendFullPatch(`library slot ${slot + 1}`)) {
       toast(`"${patch.name || '(unnamed)'}" sent to the amp`);
     } else {
-      if (!midi.connected) pendingSend = `library slot ${slot + 1}`;
+      if (!midi.connected) session.deferSend(`library slot ${slot + 1}`);
       toast(`Loaded "${patch.name || '(unnamed)'}" — connect to hear it`);
     }
   },
 });
 
+// The bank header and file name follow the connected amp (PROTOCOL.md §8.2);
+// with no amp announced yet the export is the THR5/10 bank.
 btnLibExport.addEventListener('click', () => {
-  downloadFile(library.exportYdl(), 'THR10.YDL');
+  downloadFile(library.exportYdl(ampModelName), ydlFileName(ampModelName));
 });
 
 libImport.addEventListener('change', () => {
@@ -299,27 +304,12 @@ midi.addEventListener('connection', e => {
   chkWide.disabled = !connected;
   connDot.className = `dot ${connected ? 'online' : 'offline'}`;
   connLabel.textContent = connected ? (ampModelName ?? name) : 'Connect';
+  setOfflineReason(connected ? null : 'noport');
   logLine(connected ? `THR port found: ${name}` : 'THR port lost/not found');
-  if (connected) {
-    if (pendingSend) {
-      // A patch was loaded while no amp was connected: write it to the amp,
-      // don't fetch the amp's sound over it. On a failed send it stays pending.
-      if (sendFullPatch(`${pendingSend}, sent on connect`)) {
-        pendingSend = null;
-        lastConnectSend = performance.now();
-        toast(`"${patch.name || '(unnamed)'}" sent to the amp`);
-      }
-    } else {
-      requestDump(); // in case we missed the amp's announce
-    }
-    syncSystemToAmp(); // write-only settings: make the amp match the lenses
-  }
+  // Either writes a patch loaded while offline or asks the amp for its sound.
+  if (session.connection(connected)) toast(`"${patch.name || '(unnamed)'}" sent to the amp`);
+  if (connected) syncSystemToAmp(); // write-only settings: make the amp match the lenses
 });
-
-// Verified on real hardware: the amp emits its announce again right after
-// every dump it sends, so "announce → request dump" must be suppressed when
-// the announce merely trails a dump we just received — else we loop forever.
-let lastDumpReceived = -Infinity;
 
 midi.addEventListener('sysex', e => {
   const data = e.detail.data;
@@ -329,11 +319,9 @@ midi.addEventListener('sysex', e => {
       ampModelName = ev.modelName;
       labels = labelsForModel(ev.modelName);
       panel.setLabels(labels);
-      connLabel.textContent = ev.modelName;
+      connLabel.textContent = DEMO ? `Demo ${ev.modelName}` : ev.modelName;
       logLine(`IN  amp announce: ${ev.modelName}`);
-      // ...or when it trails a connect that just wrote a pending patch: the
-      // amp already holds what the screen shows.
-      if (performance.now() - Math.max(lastDumpReceived, lastConnectSend) > 2000) requestDump();
+      session.announce(); // asks for a dump unless the announce merely trails one
       break;
     case 'param': {
       const r = resolveParam(ev.pp, patch); // resolve once for log + apply
@@ -342,7 +330,7 @@ midi.addEventListener('sysex', e => {
       break;
     }
     case 'dump':
-      lastDumpReceived = performance.now();
+      session.dumpReceived();
       pushUndo(true); // a dump overwrites local edits; keep them reachable
       patch = ev.patch;
       dumpSnapshot = patch.clone();
@@ -377,16 +365,29 @@ function applyIncoming(r, value) {
 
 // ------------------------------------------------------------------- toolbar
 
+// Why the control surface is offline — the banner (style.css) names the
+// actual blocker instead of always saying "plug in the amp":
+// unsupported (no Web MIDI), denied (permission), noport (nothing found).
+function setOfflineReason(reason) {
+  if (reason) document.body.dataset.reason = reason;
+  else delete document.body.dataset.reason;
+}
+
 async function connect(manual) {
   try {
     await midi.init();
     logLine('MIDI access granted, scanning for THR ports…');
+    if (!midi.connected) setOfflineReason('noport');
   } catch (err) {
+    setOfflineReason(navigator.requestMIDIAccess ? 'denied' : 'unsupported');
     logError(manual ? err.message : `Auto-connect failed: ${err.message} — press Connect to retry.`);
   }
 }
 
 btnConnect.addEventListener('click', () => connect(true));
+
+// Demo mode is a page state (?demo), so entering it is a navigation.
+btnDemo.addEventListener('click', () => { location.search = '?demo'; });
 
 btnDump.addEventListener('click', requestDump);
 
@@ -409,7 +410,7 @@ async function importYdpFile(file) {
     if (sendFullPatch('YDP import')) {
       toast(`"${patch.name || file.name}" sent to the amp`);
     } else {
-      if (!midi.connected) pendingSend = 'YDP import';
+      if (!midi.connected) session.deferSend('YDP import');
       toast(`Loaded "${patch.name || file.name}" — connect to hear it`);
     }
   } catch (err) {
@@ -502,17 +503,31 @@ consoleDialog.addEventListener('click', e => {
 // Connect on load: silently when the sysex permission is already granted,
 // prompting once otherwise. The Connect button stays as a manual retry.
 (async () => {
-  try {
-    const st = await navigator.permissions?.query({ name: 'midi', sysex: true });
-    if (st?.state === 'denied') {
-      logError('MIDI permission is blocked — allow it in the browser site settings, then press Connect.');
-      return;
-    }
-  } catch { /* Permissions API can't describe MIDI here; just try below */ }
+  if (!DEMO) {
+    try {
+      const st = await navigator.permissions?.query({ name: 'midi', sysex: true });
+      if (st?.state === 'denied') {
+        setOfflineReason('denied');
+        logError('MIDI permission is blocked — allow it in the browser site settings, then press Connect.');
+        return;
+      }
+    } catch { /* Permissions API can't describe MIDI here; just try below */ }
+  }
   await connect(false);
+  if (DEMO) toast('Demo mode — a simulated amp answers. Open the site without ?demo for a real one.');
 })();
 
-// Offline support for the installed PWA (no-op during plain-http local dev).
-if ('serviceWorker' in navigator) {
+// Offline support for the installed PWA. Skipped on localhost: it is a
+// secure context, so the worker would register there too, and its cache
+// name is only stamped per deploy — a local python http.server would serve
+// the previous file on the first reload after every edit.
+if ('serviceWorker' in navigator && !['localhost', '127.0.0.1'].includes(location.hostname)) {
+  // A new deploy's worker takes over on activate (skipWaiting + claim), but
+  // the open page keeps running the old scripts until it reloads. On the very
+  // first visit there is no previous controller, so no toast.
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController) toast('New version installed — reload to use it');
+  });
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }

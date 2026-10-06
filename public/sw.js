@@ -13,6 +13,8 @@ const ASSETS = [
   './js/panel.js',
   './js/protocol.js',
   './js/library.js',
+  './js/session.js',
+  './js/demo.js',
   './icon.svg',
   './manifest.webmanifest',
 ];

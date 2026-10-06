@@ -31,10 +31,15 @@ an app (Chrome → Install) and works offline.
 No build step — plain HTML/JS/CSS. The site is `public/`, which is exactly
 what gets published; everything else in the repo stays private. Serve it
 (`python3 -m http.server -d public`) and open localhost; Web MIDI needs a
-secure context, which localhost is. Tests: `node tests/protocol.test.mjs`
-and `node tests/library.test.mjs`.
+secure context, which localhost is. The service worker does not register on
+localhost, so every reload serves the files as they are on disk. Tests:
+`node tests/protocol.test.mjs`, `node tests/library.test.mjs` and
+`node tests/session.test.mjs` (the connection rules, driven with a fake clock).
 Every push to `master` runs the tests and deploys via GitHub Actions to
 Cloudflare Workers.
+
+No amp at hand: open the site with `?demo` (or press Demo) and a simulated
+THR10 answers the dump request and keeps up with your edits.
 
 The SysEx protocol is community reverse-engineered and verified against
 real hardware — layouts, checksums, file formats, and open questions live
