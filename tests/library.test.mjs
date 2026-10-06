@@ -26,7 +26,7 @@ class El {
     this.parent = null;
   }
   addEventListener(type, fn) { (this.listeners[type] ??= []).push(fn); }
-  fire(type) { for (const fn of this.listeners[type] ?? []) fn({ stopPropagation() {} }); }
+  fire(type, extra = {}) { for (const fn of this.listeners[type] ?? []) fn({ stopPropagation() {}, preventDefault() {}, ...extra }); }
   setAttribute() {}
   focus() {}
   select() {}
@@ -125,6 +125,38 @@ check('empty slot click loads nothing', loads.length, 4);
 check('empty slot is selected', selectedRows(), [2]);
 check('empty selected slot shows no Reload', Boolean(row(2).find('lib-reload')), false);
 check('empty selected slot keeps Save', Boolean(row(2).find('lib-save')), true);
+
+// --- keyboard rename: F2 on any slot opens the name field; Enter commits
+slotBtn(1).fire('keydown', { key: 'F2' });
+let field = row(1).find('lib-rename');
+check('F2 opens the rename field with the current name', field?.value, 'Lead');
+slotBtn(1).fire('keydown', { key: 'F2' });
+check('a second F2 does not open a second field', row(1).find('lib-rename') === field, true);
+field.value = 'Lead II';
+field.fire('keydown', { key: 'Enter' });
+check('Enter commits the new name', lib.slots[1].name, 'Lead II');
+check('renamed slot is persisted', JSON.parse(store.get('thr10.library.v1'))[1].name, 'Lead II');
+check('rename does not load the slot', loads.length, 4);
+
+// --- Enter on the selected (empty) slot names it and saves the current patch
+current.payload[0] = 7;
+slotBtn(2).fire('keydown', { key: 'Enter' });
+field = row(2).find('lib-rename');
+check('Enter on the selected slot opens an empty name field', field?.value, '');
+field.value = 'Mine';
+field.fire('keydown', { key: 'Enter' });
+check('naming an empty slot saves the current patch there', [lib.slots[2]?.name, lib.slots[2]?.payload[0]], ['Mine', 7]);
+
+// --- Enter on a slot that is not selected is left to the click (load)
+slotBtn(0).fire('keydown', { key: 'Enter' });
+check('Enter on another slot opens no rename field', row(0).find('lib-rename'), null);
+
+// --- Escape drops the edit
+slotBtn(1).fire('keydown', { key: 'F2' });
+field = row(1).find('lib-rename');
+field.value = 'Dropped';
+field.fire('keydown', { key: 'Escape' });
+check('Escape keeps the old name', lib.slots[1].name, 'Lead II');
 
 console.log(failures ? `\n${failures} FAILURES` : '\nALL CHECKS PASSED');
 process.exit(failures ? 1 : 0);

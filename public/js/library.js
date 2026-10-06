@@ -127,13 +127,16 @@ export class Library {
     name.className = 'lib-name';
     name.textContent = patch ? (patch.name || '(unnamed)') : 'Empty';
 
-    // Double-click a slot's name: rename it — or, on an empty slot, name it
-    // and save the current patch into it in one gesture.
+    // Double-click a slot's name (or F2 on the focused slot): rename it — or,
+    // on an empty slot, name it and save the current patch into it in one
+    // gesture.
     btn.title = patch
-      ? 'Click to load — double-click the name to rename'
-      : 'Double-click the name to save the current patch here';
-    name.addEventListener('dblclick', e => {
-      e.stopPropagation();
+      ? 'Click to load — double-click the name or press F2 to rename'
+      : 'Double-click the name or press F2 to save the current patch here';
+    let renaming = false;
+    const startRename = () => {
+      if (renaming) return; // the row re-renders when the edit commits
+      renaming = true;
       const input = document.createElement('input');
       input.type = 'text';
       input.maxLength = 48;
@@ -166,6 +169,18 @@ export class Library {
       name.replaceWith(input);
       input.focus();
       input.select();
+    };
+    name.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      startRename();
+    });
+    // Keyboard: F2 renames any slot; Enter renames the selected one (its
+    // click is a no-op, so Enter would otherwise do nothing there).
+    btn.addEventListener('keydown', e => {
+      if (e.key === 'F2' || (e.key === 'Enter' && i === this.selected)) {
+        e.preventDefault();
+        startRename();
+      }
     });
 
     btn.append(num, name);
