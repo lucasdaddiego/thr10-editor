@@ -3,7 +3,7 @@
 import {
   parse, resolveParam, Patch, BLOCKS, KNOBS, AMP_MODELS, CABINETS,
   patchToYdp, patchFromYdp, msgAttach, msgParam, msgSystem, SYS_LED,
-  libraryToYdl, libraryFromYdl, YDL_SIZE, YDL_SLOTS, labelsForModel,
+  libraryToYdl, libraryFromYdl, YDL_SIZE, YDL_SLOTS, labelsForModel, ydlFileName,
 } from '../public/js/protocol.js';
 import { parseHex } from '../public/js/midi.js';
 
@@ -144,6 +144,18 @@ check('YDL slot 42 round-trip', libOut[42].equals(libIn[42]), true);
 let ydlThrew = false;
 try { libraryFromYdl(ydl.subarray(0, 100)); } catch { ydlThrew = true; }
 check('YDL wrong size throws', ydlThrew, true);
+
+// --- .YDL bank header per model (PROTOCOL.md §8.2): byte 0x0B marks THR10X
+// and THR10C, the THR5A bank has 01 at 0x08, THR5/10 leave bytes 7–12 at 0.
+check('YDL THR10 header bytes 7–12 are zero', [...libraryToYdl(libIn, 'THR10').subarray(7, 13)], [0, 0, 0, 0, 0, 0]);
+check('YDL default (no model) matches THR10', [...libraryToYdl(libIn).subarray(0, 13)], [...libraryToYdl(libIn, 'THR10').subarray(0, 13)]);
+check('YDL THR10X header byte 0x0B', libraryToYdl(libIn, 'THR10X')[0x0b], 0x02);
+check('YDL THR10C header byte 0x0B', libraryToYdl(libIn, 'THR10C')[0x0b], 0x03);
+check('YDL THR5A header byte 0x08', libraryToYdl(libIn, 'THR5A')[0x08], 0x01);
+check('YDL model header leaves the records alone', [...libraryToYdl(libIn, 'THR10C').subarray(13)], [...ydl.subarray(13)]);
+check('YDL file name per model',
+  ['THR10', 'THR5', 'THR10C', 'THR10X', 'THR5A', null].map(ydlFileName),
+  ['THR5_10.YDL', 'THR5_10.YDL', 'THR10C.YDL', 'THR10X.YDL', 'THR5A.YDL', 'THR5_10.YDL']);
 
 // --- clone / equals
 const pc = parse(dump1).patch;

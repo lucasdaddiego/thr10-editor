@@ -65,8 +65,10 @@ export class Library {
     this.#renderAll();
   }
 
-  exportYdl() {
-    return libraryToYdl(this.slots);
+  // modelName picks the bank header the official editor expects (THR10C,
+  // THR10X, THR5A); anything else writes the THR5/10 bank.
+  exportYdl(modelName) {
+    return libraryToYdl(this.slots, modelName);
   }
 
   #restore() {

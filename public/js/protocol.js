@@ -396,9 +396,26 @@ export function libraryFromYdl(bytes) {
   return slots;
 }
 
-export function libraryToYdl(slots) {
+// The official editor keeps one bank per model (Patch.getLibraryFile): THR5
+// and THR10 share THR5_10.YDL. Unknown or no model falls back to that one.
+export function ydlFileName(modelName) {
+  switch (modelName) {
+    case 'THR10C': return 'THR10C.YDL';
+    case 'THR10X': return 'THR10X.YDL';
+    case 'THR5A': return 'THR5A.YDL';
+    default: return 'THR5_10.YDL';
+  }
+}
+
+export function libraryToYdl(slots, modelName = 'THR10') {
   const f = new Uint8Array(YDL_SIZE);
-  f.set(YDL_HEADER); // header bytes 7–12 stay 0, matching the THR5/10 files
+  f.set(YDL_HEADER);
+  // Header bytes 7–12 are 0 in the THR5/10 bank. The other banks mark their
+  // model: byte 0x0B = 02 (THR10X) / 03 (THR10C); THR5A has 01 at 0x08.
+  // Whether the official editor rejects a mismatch is unverified (§8.2).
+  if (modelName === 'THR10X') f[0x0b] = 0x02;
+  else if (modelName === 'THR10C') f[0x0b] = 0x03;
+  else if (modelName === 'THR5A') f[0x08] = 0x01;
   for (let i = 0; i < YDL_SLOTS; i++) {
     const p = slots[i];
     if (!p) continue; // empty slot stays all-zero
