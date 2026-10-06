@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # The actions are SHA-pinned in the workflows; this keeps the pins current.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
