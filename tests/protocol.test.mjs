@@ -192,6 +192,24 @@ check('formatValue fmt', formatValue(KNOBS[0], 36), '3.6');
 check('formatValue plain number', formatValue({ min: 0, max: 10 }, 7), '7');
 function compRackParams() { return BLOCKS.find(b => b.key === 'compressor').params[1]; }
 
+// --- serialisers never change the patch they write (PROTOCOL.md §4.2 zero
+// goes into the output only). Before, toDump zeroed the patch's own last
+// payload byte, so a library slot with a non-zero byte there no longer
+// equalled its loaded copy and Reload asked to discard edits nobody made.
+const pDirty = parse(dump1).patch;
+pDirty.payload[127] = 0x11;
+const pBefore = pDirty.clone();
+const dirtyDump = pDirty.toDump();
+check('toDump zeroes the last payload byte in the output', dirtyDump[146 + 127], 0);
+check('toDump checksum still valid', parse(dirtyDump).patch.checksumOk, true);
+check('toDump leaves the patch unchanged', pDirty.equals(pBefore), true);
+check('patchToYdp zeroes the last payload byte in the output', patchToYdp(pDirty)[9 + 128 + 127], 0);
+check('patchToYdp leaves the patch unchanged', pDirty.equals(pBefore), true);
+const dirtyLib = new Array(YDL_SLOTS).fill(null);
+dirtyLib[99] = pDirty;
+const dirtyYdl = libraryToYdl(dirtyLib);
+check('libraryToYdl zeroes the last payload byte of the last record', dirtyYdl[YDL_SIZE - 1], 0);
+check('libraryToYdl leaves the patch unchanged', pDirty.equals(pBefore), true);
 
 // --- inverse formatters (typed value entry)
 const compRack = BLOCKS.find(b => b.key === 'compressor').params[1];

@@ -303,8 +303,10 @@ export class Patch {
     d.set([...HDR, 0x00, 0x02, 0x0c]); // header + 14-bit data length (268)
     d.set(MAGIC, 6);
     encodeName(this.name, d, NAME_OFF);
-    this.payload[PAYLOAD_SIZE - 1] = 0; // last payload byte must be 0 (PROTOCOL.md §4.2)
     d.set(this.payload, PAYLOAD_OFF);
+    // The last payload byte must be 0 (PROTOCOL.md §4.2). It is zeroed in the
+    // output only: the serialisers never change the patch they write.
+    d[PAYLOAD_OFF + PAYLOAD_SIZE - 1] = 0;
     let sum = 0;
     for (let i = 6; i < 6 + DATA_SIZE; i++) sum += d[i];
     d[6 + DATA_SIZE] = (~sum + 1) & 0x7f;
@@ -373,8 +375,8 @@ export function patchToYdp(patch) {
   const f = new Uint8Array(YDP_SIZE);
   f.set(YDP_HEADER);
   encodeName(patch.name, f, 9);
-  patch.payload[PAYLOAD_SIZE - 1] = 0;
   f.set(patch.payload, 9 + NAME_SIZE);
+  f[9 + NAME_SIZE + PAYLOAD_SIZE - 1] = 0; // PROTOCOL.md §4.2, as in toDump
   return f;
 }
 
@@ -441,8 +443,8 @@ export function libraryToYdl(slots, modelName = 'THR10') {
     if (!p) continue; // empty slot stays all-zero
     const off = YDL_REC_OFF + i * YDL_REC_SIZE;
     encodeName(p.name, f, off);
-    p.payload[PAYLOAD_SIZE - 1] = 0;
     f.set(p.payload, off + NAME_SIZE);
+    f[off + NAME_SIZE + PAYLOAD_SIZE - 1] = 0; // PROTOCOL.md §4.2, as in toDump
   }
   return f;
 }
