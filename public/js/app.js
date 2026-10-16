@@ -1,7 +1,7 @@
 import { ThrMidi, toHex, parseHex } from './midi.js';
 import {
   Patch, parse, resolveParam, msgAttach, msgParam, msgSystem,
-  SYS_LED, SYS_WIDE, EFFECT_ON, labelsForModel, patchFromYdp, ydlFileName,
+  SYS_LED, SYS_WIDE, EFFECT_ON, labelsForModel, patchFromYdp, ydlFileName, formatValue,
 } from './protocol.js';
 import { Panel } from './panel.js';
 import { Library } from './library.js';
@@ -90,19 +90,14 @@ function logError(text) {
   toast(text);
 }
 
-function fmtParam(param, value) {
-  if (param.enum) return param.enum[value] ?? value;
-  return param.fmt ? param.fmt(value) : value;
-}
-
 function describeResolved(r, pp, value) {
   switch (r.kind) {
     case 'ampModel': return `Amp model = ${labels.amps[value] ?? value}`;
     case 'cabinet': return `Cabinet = ${labels.cabs[value] ?? value}`;
-    case 'knob': return `${r.param.label} = ${fmtParam(r.param, value)}`;
+    case 'knob': return `${r.param.label} = ${formatValue(r.param, value)}`;
     case 'type': return `${r.block.label} type = ${r.block.types[value] ?? value}`;
     case 'onoff': return `${r.block.label} ${value === EFFECT_ON ? 'ON' : 'OFF'}`;
-    case 'param': return `${r.block.label} ${r.param.label} = ${fmtParam(r.param, value)}`;
+    case 'param': return `${r.block.label} ${r.param.label} = ${formatValue(r.param, value)}`;
     default: return `unknown param ${pp.toString(16).padStart(2, '0').toUpperCase()} = ${value}`;
   }
 }

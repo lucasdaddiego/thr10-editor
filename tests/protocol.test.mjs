@@ -4,6 +4,7 @@ import {
   parse, resolveParam, Patch, BLOCKS, KNOBS, AMP_MODELS, CABINETS,
   patchToYdp, patchFromYdp, msgAttach, msgParam, msgSystem, SYS_LED,
   libraryToYdl, libraryFromYdl, YDL_SIZE, YDL_SLOTS, labelsForModel, ydlFileName,
+  isSpecialMode, formatValue, MODEL_LABELS,
 } from '../public/js/protocol.js';
 import { parseHex } from '../public/js/midi.js';
 
@@ -172,6 +173,25 @@ check('THR10X cab labels', labelsForModel('THR10X').cabs[0], 'Fuel 4x12');
 check('THR5A byte order is reversed from panel', labelsForModel('THR5A').amps[0], 'EG Clean');
 check('THR5A condenser is byte 4', labelsForModel('THR5A').amps[4], 'Condenser');
 check('unknown model falls back to THR10', labelsForModel('THR9999').amps, AMP_MODELS);
+
+// --- special modes per model: the tooltip marks only these amp bytes
+const specials = name => labelsForModel(name).amps.map((_, i) => i).filter(i => isSpecialMode(labelsForModel(name), i));
+check('THR10 special modes = Bass/Aco/Flat', specials('THR10').map(i => AMP_MODELS[i]), ['Bass', 'Aco', 'Flat']);
+check('THR10C special modes = bytes 5–7', specials('THR10C'), [5, 6, 7]);
+check('THR10X Clean (byte 5) is a guitar amp, not a special mode', specials('THR10X').map(i => labelsForModel('THR10X').amps[i]), ['Bass', 'Flat']);
+check('THR5A has no special modes', specials('THR5A'), []);
+for (const [name, l] of Object.entries(MODEL_LABELS)) {
+  check(`${name} special bytes name existing amps`, l.special.every(i => i < l.amps.length), true);
+}
+
+// --- one formatter for knob windows and the console log
+const ratio = compRackParams().find(pr => pr.key === 'ratio');
+check('formatValue enum name', formatValue(ratio, 5), '1:∞');
+check('formatValue enum out of range falls back to the number', formatValue(ratio, 9), '9');
+check('formatValue fmt', formatValue(KNOBS[0], 36), '3.6');
+check('formatValue plain number', formatValue({ min: 0, max: 10 }, 7), '7');
+function compRackParams() { return BLOCKS.find(b => b.key === 'compressor').params[1]; }
+
 
 // --- inverse formatters (typed value entry)
 const compRack = BLOCKS.find(b => b.key === 'compressor').params[1];

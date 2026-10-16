@@ -90,27 +90,47 @@ export const CABINETS = ['US 4x12', 'US 2x12', 'Brit 4x12', 'Brit 2x12', '1x12',
 // THR10C/THR10X/THR5A tables verified against the official THR Editor V1.1.0
 // binary and its factory .YDL preset banks (see PROTOCOL.md §7). Note the
 // THR5A: its byte order is the REVERSE of the front-panel order.
+// `special` lists the amp-model bytes that are the amp's special modes (bass,
+// acoustic, flat voicings) rather than guitar amp models. Bytes 5–7 on the
+// THR10, THR10C and THR5; on the THR10X byte 5 is its "Clean" guitar model, so
+// only 6–7; the THR5A has no special modes.
+const SPECIAL_5_7 = [5, 6, 7];
 export const MODEL_LABELS = {
-  THR10: { amps: AMP_MODELS, cabs: CABINETS },
+  THR10: { amps: AMP_MODELS, cabs: CABINETS, special: SPECIAL_5_7 },
   THR10C: {
     amps: ['Deluxe', 'Class A', 'US Blues', 'Brit Blues', 'Mini', 'Bass', 'Aco', 'Flat'],
     cabs: ['Brit Blues 2x12', 'Boutique 2x12', 'California 1x12', 'American 1x12', 'Boutique 1x12', 'Yamaha 2x12', 'None'],
+    special: SPECIAL_5_7,
   },
   THR10X: {
     amps: ['Power I', 'Power II', 'Brown I', 'Brown II', 'Southern Hi', 'Clean', 'Bass', 'Flat'],
     // only five named cabs; factory presets use byte 5 or 6 for "no cab"
     cabs: ['Fuel 4x12', 'Brown 4x12', 'Vintage 4x12', 'Juicy 4x12', 'Mods 4x12', 'None', 'None'],
+    special: [6, 7],
   },
   // THR5 shares the THR5_10.YDL bank; bytes 5–7 (Bass/Aco/Flat) exist there
-  THR5: { amps: AMP_MODELS, cabs: CABINETS },
+  THR5: { amps: AMP_MODELS, cabs: CABINETS, special: SPECIAL_5_7 },
   THR5A: {
     amps: ['EG Clean', 'Nylon', 'Tube', 'Dynamic', 'Condenser'],
     cabs: CABINETS, // acoustic model; cab table unknown, THR10 names as fallback
+    special: [],
   },
 };
 
 export function labelsForModel(modelName) {
   return MODEL_LABELS[modelName] ?? MODEL_LABELS.THR10;
+}
+
+// True when amp-model byte `value` is a special mode on the model `labels` describe.
+export function isSpecialMode(labels, value) {
+  return labels.special.includes(value);
+}
+
+// Display text of a parameter value: the enum name, the fmt() text, or the
+// number. One formatter for the knob windows (panel.js) and the console log.
+export function formatValue(param, value) {
+  if (param.enum) return param.enum[value] ?? String(value);
+  return param.fmt ? param.fmt(value) : String(value);
 }
 
 export const AMP_MODEL_PP = 0x00;

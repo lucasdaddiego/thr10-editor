@@ -7,8 +7,8 @@
 // or focus and use arrow keys / PageUp / PageDown / Home / End.
 
 import {
-  AMP_MODELS, CABINETS, AMP_MODEL_PP, CABINET_PP, KNOBS, BLOCKS, paramsForType,
-  EFFECT_ON, EFFECT_OFF,
+  AMP_MODEL_PP, CABINET_PP, KNOBS, BLOCKS, paramsForType,
+  EFFECT_ON, EFFECT_OFF, MODEL_LABELS, isSpecialMode, formatValue,
 } from './protocol.js';
 
 export class Panel {
@@ -23,7 +23,7 @@ export class Panel {
   constructor(roots, ctx) {
     this.roots = roots;
     this.ctx = ctx;
-    this.labels = { amps: AMP_MODELS, cabs: CABINETS };
+    this.labels = MODEL_LABELS.THR10;
     this.renderAll();
   }
 
@@ -132,8 +132,9 @@ export class Panel {
 
     const left = el('div', 'amp-left');
     left.append(el('h2', 'amp-title', 'Amplifier'));
-    // Bytes 0–4 are guitar amp models; 5–7 (Bass/Aco/Flat) are the amp's
-    // special modes — grouped apart, matching the hardware's knob layout.
+    // Bytes 0–4 and 5–7 are grouped apart, matching the hardware's knob
+    // layout. Which of 5–7 are special modes (not guitar amp models) depends
+    // on the model: the THR10X's byte 5 is its Clean amp (MODEL_LABELS).
     const selectModel = i => {
       this.patch.ampModel = i;
       this.#refreshLedList(this.modelList, i);
@@ -146,8 +147,9 @@ export class Panel {
     this.modelList.append(this.#ledList(amps.slice(0, 5), sel < 5 ? sel : -1, i => selectModel(i)));
     if (amps.length > 5) {
       const special = this.#ledList(amps.slice(5), sel >= 5 ? sel - 5 : -1, i => selectModel(i + 5));
-      [...special.children].forEach(item =>
-        item.title = 'Special mode — not a guitar amp model');
+      [...special.children].forEach((item, i) => {
+        if (isSpecialMode(this.labels, i + 5)) item.title = 'Special mode — not a guitar amp model';
+      });
       this.modelList.append(special);
     }
     left.append(this.modelList);
@@ -354,10 +356,6 @@ export class Panel {
     return cell;
   }
 
-}
-
-function formatValue(param, value) {
-  return param.fmt ? param.fmt(value) : String(value);
 }
 
 function el(tag, className, text) {
